@@ -1,0 +1,66 @@
+@page "/transactions"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@using MyFinance.Client.Models
+
+<h3>Transacciones</h3>
+
+<p>
+    <a class="btn btn-primary" href="transactions/add">+ Nueva Transacción</a>
+</p>
+
+@if (transactions is null)
+{
+    <p><em>Cargando…</em></p>
+}
+else if (!transactions.Any())
+{
+    <p>No hay transacciones.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Fecha</th><th>Categoría</th><th class="text-end">Monto</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var t in transactions)
+            {
+                <tr>
+                    <td>@t.Date.ToShortDateString()</td>
+                    <td>@t.Category</td>
+                    <td class="text-end">@t.Amount.ToString("C")</td>
+                    <td>
+                        <a class="btn btn-sm btn-secondary" href="transactions/edit/@t.Id">Editar</a>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => Delete(t.Id)">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    List<TransactionDto>? transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        transactions = await Http.GetFromJsonAsync<List<TransactionDto>>("api/transactions");
+    }
+
+    async Task Delete(Guid id)
+    {
+        var ok = await Http.DeleteAsync($"api/transactions/{id}");
+        if (ok.IsSuccessStatusCode)
+        {
+            transactions = transactions?.Where(t => t.Id != id).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            // aquí podrías mostrar un mensaje de error
+        }
+    }
+}

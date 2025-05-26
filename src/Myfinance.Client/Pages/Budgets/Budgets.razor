@@ -1,0 +1,61 @@
+@page "/budgets"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@using MyFinance.Client.Models
+
+<h3>Presupuestos</h3>
+
+<p>
+    <a class="btn btn-primary" href="budgets/add">+ Nuevo Presupuesto</a>
+</p>
+
+@if (budgets is null)
+{
+    <p><em>Cargando.</em></p>
+}
+else if (!budgets.Any())
+{
+    <p>No hay presupuestos.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Mes/A�o</th><th class="text-end">Monto</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var b in budgets)
+            {
+                <tr>
+                    <td>@($"{b.Month}/{b.Year}")</td>
+                    <td class="text-end">@b.Amount.ToString("C")</td>
+                    <td>
+                        <a class="btn btn-sm btn-secondary" href="budgets/edit/@b.Id">Editar</a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(b.Id)">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<BudgetDto>? budgets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        budgets = await Http.GetFromJsonAsync<List<BudgetDto>>("api/budget");
+    }
+
+    async Task Delete(Guid id)
+    {
+        var ok = await Http.DeleteAsync($"api/budget/{id}");
+        if (ok.IsSuccessStatusCode)
+        {
+            budgets = budgets?.Where(b => b.Id != id).ToList();
+            StateHasChanged();
+        }
+    }
+}
