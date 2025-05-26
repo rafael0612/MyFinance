@@ -1,0 +1,43 @@
+@page "/dashboard"
+@inject HttpClient Http
+@using MyFinance.Client.Models
+
+<h3>Dashboard Financiero</h3>
+
+@if (summary is null)
+{
+    <p><em>Cargando resumen mensual...</em></p>
+}
+else
+{
+    <div class="row mb-4">
+      <div class="col">
+        <div class="card p-3">
+          <h5>@($"Resumen {summary.Month}/{summary.Year}")</h5>
+          <ul class="list-unstyled">
+            <li><strong>Ingresos:</strong> @summary.Income.ToString("C")</li>
+            <li><strong>Gastos:</strong> @summary.Expense.ToString("C")</li>
+            <li><strong>Saldo:</strong> @summary.Balance.ToString("C")</li>
+          </ul>
+          @if (summary.Balance < 0)
+          {
+              <div class="alert alert-danger">
+                �Atenci�n! El saldo es negativo.
+              </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Aqu� podr�as a�adir un gr�fico con Chart.js, MudBlazor, etc. -->
+}
+@code {
+    MonthlySummaryDto? summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var now = DateTime.Now;
+        summary = await Http
+            .GetFromJsonAsync<MonthlySummaryDto>($"api/transactions/summary/{now.Year}/{now.Month}");
+    }
+}
