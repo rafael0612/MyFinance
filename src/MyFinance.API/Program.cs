@@ -7,19 +7,31 @@ using MyFinance.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) Configurar DbContext con la cadena en appsettings.json
+// 1) Registramos CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClientApp", policy =>
+    {
+        policy
+          .WithOrigins("http://localhost:5278")    // URL de tu Client Blazor
+          .AllowAnyHeader()                         // permitir cabeceras
+          .AllowAnyMethod();                        // permitir GET, POST, DELETE, etc.
+    });
+});
+
+// 2) Configurar DbContext con la cadena en appsettings.json
 builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConexion")));
 
-// 2) Registrar repositorios (Infrastructure → Domain interfaces)
+// 3) Registrar repositorios (Infrastructure → Domain interfaces)
 builder.Services.AddScoped<ITransactionRepository, EFCoreTransactionRepository>();
 builder.Services.AddScoped<IBudgetRepository,      EFCoreBudgetRepository>();
 
-// 3) Registrar casos de uso / servicios (Application → UseCases interfaces)
+// 4) Registrar casos de uso / servicios (Application → UseCases interfaces)
 builder.Services.AddScoped<ITransactionUseCase, TransactionService>();
 builder.Services.AddScoped<IBudgetUseCase,      BudgetService>();
 
-// 4) Añadir controladores
+// 5) Añadir controladores
 builder.Services.AddControllers();
 
 // (Opcional) Swagger / OpenAPI
@@ -43,7 +55,10 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;          // Swagger en la raíz (https://localhost:5001/)
     });
 }
-
+// 
+app.UseRouting();
+// 7) Habilitamos CORS globalmente
+app.UseCors("AllowClientApp");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

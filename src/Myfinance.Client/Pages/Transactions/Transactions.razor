@@ -21,7 +21,12 @@ else
 {
     <table class="table table-striped">
         <thead>
-            <tr><th>Fecha</th><th>Categoría</th><th class="text-end">Monto</th><th>Acciones</th></tr>
+            <tr>
+                <th>Fecha</th>
+                <th>Categoría</th>
+                <th class="text-end">Monto</th>
+                <th>Acciones</th>
+            </tr>
         </thead>
         <tbody>
             @foreach (var t in transactions)
@@ -32,8 +37,7 @@ else
                     <td class="text-end">@t.Amount.ToString("C")</td>
                     <td>
                         <a class="btn btn-sm btn-secondary" href="transactions/edit/@t.Id">Editar</a>
-                        <button class="btn btn-sm btn-danger"
-                                @onclick="() => Delete(t.Id)">
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(t.Id)">
                             Eliminar
                         </button>
                     </td>
@@ -43,24 +47,42 @@ else
     </table>
 }
 @code {
-    List<TransactionDto>? transactions;
-
+    List<TransactionDto> transactions = new();
     protected override async Task OnInitializedAsync()
     {
-        transactions = await Http.GetFromJsonAsync<List<TransactionDto>>("api/transactions");
+        try
+        {
+            // 1) Llama primero con GetAsync()
+            var response = await Http.GetAsync("api/transactions");
+            if (!response.IsSuccessStatusCode)
+            {
+                // Si no es 200 OK, lee el HTML o mensaje de error
+                var texto = await response.Content.ReadAsStringAsync();
+                Console.Error.WriteLine($"Error {response.StatusCode}: {texto}");
+                // Opcionalmente puedes mostrar un aviso en pantalla
+                return;
+            }
+            // 2) Si OK, parsea el JSON
+            transactions = await response.Content
+            .ReadFromJsonAsync<List<TransactionDto>>()
+            ?? new List<TransactionDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Excepción cargando transacciones: {ex.Message}");
+        }
     }
-
     async Task Delete(Guid id)
     {
-        var ok = await Http.DeleteAsync($"api/transactions/{id}");
-        if (ok.IsSuccessStatusCode)
+        var respuesta = await Http.DeleteAsync($"api/transactions/{id}");
+        if (respuesta.IsSuccessStatusCode)
         {
-            transactions = transactions?.Where(t => t.Id != id).ToList();
-            StateHasChanged();
+            transactions = transactions.Where(t => t.Id != id).ToList();
         }
         else
         {
-            // aquí podrías mostrar un mensaje de error
+            var msg = await respuesta.Content.ReadAsStringAsync();
+            Console.Error.WriteLine($"Error al eliminar: {respuesta.StatusCode} – {msg}");
         }
     }
 }
