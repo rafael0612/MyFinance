@@ -13,6 +13,7 @@ namespace MyFinance.Client.Models
     /// <param name="Date">The date of the transaction.</param>
     /// <param name="Category">The category of the transaction (e.g., income, expense).</param>
     /// <param name="Amount">The amount of the transaction.</param>
+    /// /// <param name="Description">Optional description of the transaction.</param>
     // public record TransactionDto(
     //     Guid Id,
     //     DateTime Date,
@@ -21,9 +22,10 @@ namespace MyFinance.Client.Models
     // );
     public class TransactionDto
     {
-        public Guid    Id       { get; set; }
-        public DateTime Date     { get; set; }
-        public string  Category { get; set; } = "Income";
-        public decimal Amount   { get; set; }
+        public Guid Id { get; set; }
+        public DateTime Date { get; set; }
+        public string Category { get; set; } = "Income";
+        public decimal Amount { get; set; }
+        public string? Description { get; set; }
     }
 }

@@ -32,6 +32,10 @@ namespace MyFinance.Infrastructure.Data
                 entity.Property(t => t.Amount)
                       .HasColumnType("decimal(18,2)")
                       .IsRequired();
+                
+                entity.Property(t => t.Description)
+                      .HasMaxLength(500)
+                      .IsRequired(false); // Puede ser nulo
             });
 
             // Budget → table "Budgets"

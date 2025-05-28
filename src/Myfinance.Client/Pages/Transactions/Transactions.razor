@@ -25,6 +25,7 @@ else
                 <th>Fecha</th>
                 <th>Categoría</th>
                 <th class="text-end">Monto</th>
+                <th>Descripción</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -35,6 +36,7 @@ else
                     <td>@t.Date.ToShortDateString()</td>
                     <td>@t.Category</td>
                     <td class="text-end">@t.Amount.ToString("C")</td>
+                    <td>@t.Description</td>
                     <td>
                         <a class="btn btn-sm btn-secondary" href="transactions/edit/@t.Id">Editar</a>
                         <button class="btn btn-sm btn-danger" @onclick="() => Delete(t.Id)">
