@@ -10,7 +10,6 @@ namespace MyFinance.API.Controllers
     public class BudgetController : ControllerBase
     {
         private readonly IBudgetUseCase _budgetUseCase;
-
         public BudgetController(IBudgetUseCase budgetUseCase)
             => _budgetUseCase = budgetUseCase;
 
@@ -21,7 +20,14 @@ namespace MyFinance.API.Controllers
             var list = await _budgetUseCase.GetAllBudgetsAsync();
             return Ok(list);
         }
-
+        // GET api/budget/{id}
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<BudgetDto>> GetById(Guid id)
+        {
+            var dto = await _budgetUseCase.GetBudgetByIdAsync(id);
+            if (dto == null) return NotFound();
+            return Ok(dto);
+        }
         // GET api/budget/2025/5
         [HttpGet("{year:int}/{month:int}")]
         public async Task<IActionResult> GetByMonth(int year, int month)
@@ -30,7 +36,6 @@ namespace MyFinance.API.Controllers
             if (budget is null) return NotFound();
             return Ok(budget);
         }
-
         // POST api/budget
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BudgetDto dto)
@@ -38,7 +43,17 @@ namespace MyFinance.API.Controllers
             await _budgetUseCase.AddBudgetAsync(dto);
             return CreatedAtAction(nameof(GetByMonth), new { dto.Year, dto.Month }, dto);
         }
-
+        // PUT api/budget/{id}
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] BudgetDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("El Id de la ruta y del cuerpo no coinciden.");
+            var updated = await _budgetUseCase.UpdateBudgetAsync(dto);
+            if (!updated)
+                return NotFound("Presupuesto no encontrado.");
+            return NoContent();
+        }        
         // DELETE api/budget/{id}
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)

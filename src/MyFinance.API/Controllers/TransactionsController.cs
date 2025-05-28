@@ -10,7 +10,6 @@ namespace MyFinance.API.Controllers
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionUseCase _transactionUseCase;
-
         public TransactionsController(ITransactionUseCase transactionUseCase)
             => _transactionUseCase = transactionUseCase;
 
@@ -21,7 +20,14 @@ namespace MyFinance.API.Controllers
             var list = await _transactionUseCase.GetAllTransactionsAsync();
             return Ok(list);
         }
-
+        // GET api/transactions/{id}
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<TransactionDto>> GetById(Guid id)
+        {
+            var dto = await _transactionUseCase.GetTransactionByIdAsync(id);
+            if (dto == null) return NotFound();
+            return Ok(dto);
+        }
         // POST api/transactions
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] TransactionDto dto)
@@ -30,11 +36,29 @@ namespace MyFinance.API.Controllers
             // devolvemos 201 Created sin ubicación específica
             return CreatedAtAction(nameof(GetAll), null);
         }
-
+        // PUT api/transactions/{id}
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] TransactionDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("El Id de la ruta y del cuerpo no coinciden.");
+            var updated = await _transactionUseCase.UpdateTransactionAsync(dto);
+            if (!updated)
+                return NotFound("Transacción no encontrada.");
+            return NoContent();
+        }
+        // DELETE api/budget/{id}
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _transactionUseCase.DeleteTransactionAsync(id);
+            return NoContent();
+        }
         // GET api/transactions/summary/2025/5
         [HttpGet("summary/{year:int}/{month:int}")]
         public async Task<IActionResult> GetSummary(int year, int month)
         {
+            Console.WriteLine($"Obteniendo resumen para {year}-{month}");
             var summary = await _transactionUseCase.GetMonthlySummaryAsync(year, month);
             return Ok(summary);
         }

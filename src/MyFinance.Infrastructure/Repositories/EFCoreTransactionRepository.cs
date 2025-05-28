@@ -16,10 +16,11 @@ namespace MyFinance.Infrastructure.Repositories
             _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
         }
-        public async Task UpdateAsync(Transaction transaction)
+        public async Task<bool> UpdateAsync(Transaction transaction)
         {
             _context.Transactions.Update(transaction);
-            await _context.SaveChangesAsync();
+            var updated = await _context.SaveChangesAsync();
+            return updated > 0;
         }
         public async Task DeleteAsync(Guid transactionId)
         {
@@ -34,6 +35,10 @@ namespace MyFinance.Infrastructure.Repositories
             => await _context.Transactions
                               .AsNoTracking()
                               .ToListAsync();
+        public async Task<Transaction?> GetByIdAsync(Guid transactionId)
+            => await _context.Transactions
+                              .AsNoTracking()
+                              .FirstOrDefaultAsync(t => t.Id == transactionId);
         public async Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month)
             => await _context.Transactions
                               .Where(t => t.Date.Year == year && t.Date.Month == month)

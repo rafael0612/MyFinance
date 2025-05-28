@@ -43,16 +43,23 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        model = await Http.GetFromJsonAsync<BudgetDto>($"api/budget/{Id}");
+        // 1) Obtener la transacción por id
+        model = await Http.GetFromJsonAsync<BudgetDto>($"api/budget/{Id}");            
     }
 
     async Task HandleValidSubmit()
-    {
-        await Http.PutAsJsonAsync($"api/budget/{Id}", model);
-        Nav.NavigateTo("/budgets");
+    {        
+        // 2) Enviar PUT para actualizar
+        var resp = await Http.PutAsJsonAsync($"api/budget/{Id}", model);
+        if (resp.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/budgets");
+        }
+        else
+        {
+            var mensaje = await resp.Content.ReadAsStringAsync();
+            Console.Error.WriteLine($"Error al guardar: {resp.StatusCode} – {mensaje}");
+        }
     }
-    private void GoBack()
-    {
-        Nav.NavigateTo("/budgets");
-    }
+    void GoBack() => Nav.NavigateTo("/budgets");
 }

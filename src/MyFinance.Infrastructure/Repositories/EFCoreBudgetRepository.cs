@@ -12,19 +12,17 @@ namespace MyFinance.Infrastructure.Repositories
 
         public EFCoreBudgetRepository(FinanceDbContext context)
             => _context = context;
-
         public async Task AddAsync(Budget budget)
         {
             _context.Budgets.Add(budget);
             await _context.SaveChangesAsync();
         }
-
-        public async Task UpdateAsync(Budget budget)
+        public async Task<bool> UpdateAsync(Budget budget)
         {
             _context.Budgets.Update(budget);
-            await _context.SaveChangesAsync();
+            var updated = await _context.SaveChangesAsync();
+            return updated > 0;
         }
-
         public async Task DeleteAsync(Guid budgetId)
         {
             var entity = await _context.Budgets.FindAsync(budgetId);
@@ -34,12 +32,14 @@ namespace MyFinance.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
         public async Task<Budget?> GetByMonthAsync(int year, int month)
             => await _context.Budgets
                              .AsNoTracking()
                              .FirstOrDefaultAsync(b => b.Year == year && b.Month == month);
-
+        public async Task<Budget?> GetByIdAsync(Guid budgetId)
+            => await _context.Budgets
+                             .AsNoTracking()
+                             .FirstOrDefaultAsync(b => b.Id == budgetId);
         public async Task<IEnumerable<Budget>> GetAllAsync()
             => await _context.Budgets
                              .AsNoTracking()
