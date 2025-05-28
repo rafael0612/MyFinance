@@ -14,10 +14,18 @@ namespace MyFinance.API.Controllers
             => _transactionUseCase = transactionUseCase;
 
         // GET api/transactions
+        // GET api/transactions?startDate=2025-05-01&endDate=2025-05-31&category=Income&description=agua&sortField=Date&sortDesc=true
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] string? category,
+            [FromQuery] string? description,
+            [FromQuery] string sortField = "Date",
+            [FromQuery] bool sortDesc = false)
         {
-            var list = await _transactionUseCase.GetAllTransactionsAsync();
+            var list = await _transactionUseCase
+            .GetTransactionsAsync(startDate, endDate, category, description, sortField, sortDesc);
             return Ok(list);
         }
         // GET api/transactions/{id}
