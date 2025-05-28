@@ -13,11 +13,23 @@ namespace MyFinance.Domain.Interfaces
         /// </sumary>
         Task<IEnumerable<Transaction>> GetAllAsync();
         /// <sumary>
-        /// Recupera una transacci��n por su ID.
+        /// Recupera una transacción por su ID.
         /// </sumary>
         Task<Transaction> GetByIdAsync(Guid transactionId);
         /// <sumary>
-        /// Recupera transacciones filtradas por a�o y mes.
+        /// Recupera transacciones filtradas por año y mes.
+        /// </sumary>
         Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month);
+        /// <summary>
+        /// Recupera transacciones filtradas por fecha, categoráa y descripción.
+        /// </summary>
+        Task<IEnumerable<Transaction>> GetFilteredAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? category,
+            string? description,
+            string sortField,
+            bool sortDesc
+        );
     }
 }

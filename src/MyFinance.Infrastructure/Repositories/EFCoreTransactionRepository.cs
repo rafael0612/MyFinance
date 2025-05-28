@@ -44,5 +44,48 @@ namespace MyFinance.Infrastructure.Repositories
                               .Where(t => t.Date.Year == year && t.Date.Month == month)
                               .AsNoTracking()
                               .ToListAsync();
+        public async Task<IEnumerable<Transaction>> GetFilteredAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? category,
+            string? description,
+            string sortField,
+            bool sortDesc)
+        {
+            // 1) Base query
+            IQueryable<Transaction> query = _context.Transactions
+                                                    .AsNoTracking();
+            // 2) Filtros
+            if (startDate.HasValue)
+                query = query.Where(t => t.Date.Date >= startDate.Value.Date);
+
+            if (endDate.HasValue)
+                query = query.Where(t => t.Date.Date <= endDate.Value.Date);
+
+            if (!string.IsNullOrWhiteSpace(category))
+                query = query.Where(t => t.Category!.Name == category);
+
+            if (!string.IsNullOrWhiteSpace(description))
+                query = query.Where(t =>
+                    t.Description != null &&
+                    EF.Functions.Like(t.Description, $"%{description}%"));
+            // 3) Ordenamiento
+            query = (sortField, sortDesc) switch
+            {
+                ("Date", false)        => query.OrderBy(t => t.Date),
+                ("Date", true)         => query.OrderByDescending(t => t.Date),
+                ("Category", false)    => query.OrderBy(t => t.Category!.Name),
+                ("Category", true)     => query.OrderByDescending(t => t.Category!.Name),
+                ("Description", false) => query.OrderBy(t => t.Description),
+                ("Description", true)  => query.OrderByDescending(t => t.Description),
+                ("Amount", false)      => query.OrderBy(t => t.Amount),
+                ("Amount", true)       => query.OrderByDescending(t => t.Amount),
+                _                      => sortDesc
+                                            ? query.OrderByDescending(t => t.Date)
+                                            : query.OrderBy(t => t.Date)
+            };
+            // 4) Ejecuta en la base de datos
+            return await query.ToListAsync();
+        }
     }
 }

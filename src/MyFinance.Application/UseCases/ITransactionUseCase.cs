@@ -10,5 +10,13 @@ namespace MyFinance.Application.UseCases
         Task<bool> UpdateTransactionAsync(TransactionDto dto);
         Task DeleteTransactionAsync(Guid id);
         Task<MonthlySummaryDto> GetMonthlySummaryAsync(int year, int month);
+        Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? category,
+            string? description,
+            string sortField,
+            bool sortDesc
+        );
     }
 }

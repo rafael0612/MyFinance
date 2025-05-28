@@ -78,7 +78,7 @@ namespace MyFinance.Application.Services
          var income = items.Where(t => t.Category == Category.Income).Sum(t => t.Amount);
 
          var expense = items.Where(t => t.Category == Category.Expense).Sum(t => t.Amount);
-         
+
          Console.WriteLine($"Income: {income}, Expense: {expense}");
          Console.WriteLine($"Year: {year}, Month: {month}");
 
@@ -90,5 +90,32 @@ namespace MyFinance.Application.Services
             income - expense
          );
       }
+      /// <summary>
+        /// Devuelve transacciones aplicando filtros de fecha, categoría y descripción,
+        /// y luego ordenándolas según campo y sentido.
+        /// </summary>
+        public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? category,
+            string? description,
+            string sortField,
+            bool sortDesc
+        )
+        {
+            // 1) Obtiene todas (o podrías tener un método de repo que acepte filtros)
+            // Llamas al nuevo método del repo
+            var items = await _repo.GetFilteredAsync(
+               startDate, endDate, category, description, sortField, sortDesc
+            );
+            // Proyectas a DTO
+            return items.Select(t => new TransactionDto(
+               t.Id,
+               t.Date,
+               t.Category!.ToString(),
+               t.Amount,
+               t.Description
+            ));
+        }
    }
 }
