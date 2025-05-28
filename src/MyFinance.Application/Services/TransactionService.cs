@@ -20,7 +20,8 @@ namespace MyFinance.Application.Services
             t.Id,
             t.Date,
             t.Category!.ToString(),
-            t.Amount
+            t.Amount,
+            t.Description
           ));
       }
       public async Task<TransactionDto> GetTransactionByIdAsync(Guid id)
@@ -30,7 +31,8 @@ namespace MyFinance.Application.Services
             dto.Id,
             dto.Date,
             dto.Category!.ToString(),
-            dto.Amount
+            dto.Amount,
+            dto.Description
          );
       }
       public async Task AddTransactionAsync(TransactionDto dto)
@@ -40,7 +42,8 @@ namespace MyFinance.Application.Services
          var entity = new DomainEntity(
             dto.Date,
             category,
-            dto.Amount
+            dto.Amount,
+            dto.Description
          );
 
          await _repo.AddAsync(entity);
@@ -56,6 +59,7 @@ namespace MyFinance.Application.Services
          transaction.ChangeDate(dto.Date);
          transaction.ChangeCategory(category);
          transaction.ChangeAmount(dto.Amount);
+         transaction.ChangeDescription(dto.Description);
          // 4) Persistir los cambios
          return await _repo.UpdateAsync(transaction);
       }

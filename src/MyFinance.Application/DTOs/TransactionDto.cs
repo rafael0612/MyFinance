@@ -4,6 +4,7 @@
         Guid Id,
         DateTime Date,
         string Category,
-        decimal Amount
+        decimal Amount,
+        string? Description = null
     );
 }
