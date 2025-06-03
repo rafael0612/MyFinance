@@ -1,0 +1,46 @@
+# # Etapa de build con .NET 9.0 SDK preview
+# FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+# WORKDIR /src
+# COPY ["/src/MyFinance.Domain/MyFinance.Domain.csproj", "MyFinance.Domain/"]
+# COPY ["/src/MyFinance.Application/MyFinance.Application.csproj", "MyFinance.Application/"]
+# COPY ["/src/MyFinance.Infrastructure/MyFinance.Infrastructure.csproj", "MyFinance.Infrastructure/"]
+# COPY ["/src/MyFinance.API/MyFinance.API.csproj", "MyFinance.API/"]
+# RUN dotnet restore "MyFinance.API/MyFinance.API.csproj"
+# COPY . .
+# WORKDIR "/src/MyFinance.API"
+# #RUN dotnet publish -c Release -o /app/publish
+# RUN dotnet publish "MyFinance.API.csproj" -c Release -o /app/publish
+
+# # Etapa runtime con ASP.NET 9.0
+# FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+# WORKDIR /app
+# COPY --from=build /app/publish .
+# ENTRYPOINT ["dotnet", "MyFinance.API.dll"]
+
+# --- Etapa 1: Build ---
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# 1) Copiamos la solución y los proyectos .csproj para restaurar
+COPY ["MyFinance.sln", "./"]
+COPY ["src/MyFinance.Domain/MyFinance.Domain.csproj",       "src/MyFinance.Domain/"]
+COPY ["src/MyFinance.Application/MyFinance.Application.csproj","src/MyFinance.Application/"]
+COPY ["src/MyFinance.Infrastructure/MyFinance.Infrastructure.csproj","src/MyFinance.Infrastructure/"]
+COPY ["src/MyFinance.API/MyFinance.API.csproj",             "src/MyFinance.API/"]
+
+
+# 2) Restauramos a nivel de solución
+RUN dotnet restore "MyFinance.sln"
+
+# Copiar todo y publicar
+COPY . .
+
+# 4) Publicamos la API
+WORKDIR "/src/src/MyFinance.API"
+RUN dotnet publish "MyFinance.API.csproj" -c Release -o /app/publish
+
+# --- Etapa 2: Runtime ---
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "MyFinance.API.dll"]

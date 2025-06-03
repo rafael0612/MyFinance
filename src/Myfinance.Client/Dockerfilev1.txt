@@ -1,0 +1,36 @@
+# # 1) Build .NET
+# FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+# WORKDIR /src
+
+# # 1.1 Copiamos sólo el csproj (para cachear restore)
+# COPY ["src/Myfinance.Client/Myfinance.Client.csproj", "Myfinance.Client/"]
+# RUN dotnet restore "Myfinance.Client/Myfinance.Client.csproj"
+
+# # 1.2 Copiamos el resto del proyecto
+# COPY src/Myfinance.Client/ Myfinance.Client/
+
+# # 1.3 Publicamos
+# WORKDIR /src/Myfinance.Client
+# #RUN dotnet publish -c Release -o /app/publish
+# RUN dotnet publish "Myfinance.Client.csproj" -c Release -o /app/publish
+
+
+# # 2) Nginx para servir archivos estáticos
+# FROM nginx:alpine AS runtime
+# COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
+# EXPOSE 80
+# ENTRYPOINT ["nginx", "-g", "daemon off;"]
+# 1. Build stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["src/Myfinance.Client/Myfinance.Client.csproj", "src/Myfinance.Client/"]
+RUN dotnet restore "MyFinance.Client/MyFinance.Client.csproj"
+COPY src/MyFinance.Client/ MyFinance.Client/
+WORKDIR "/src/MyFinance.Client"
+RUN dotnet publish -c Release -o /app/publish
+
+# 2. Static file server
+FROM nginx:alpine
+COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
+# Opcional: si quieres servir index.html directamente en /
+CMD ["nginx", "-g", "daemon off;"]

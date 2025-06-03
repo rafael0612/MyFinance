@@ -107,7 +107,7 @@ else
     {
         // Inicializa al mes actual por defecto
         var hoy = DateTime.Today;
-        filterStart = new DateTime(hoy.Year, hoy.Month, 1);
+        filterStart = new DateTime(hoy.Year, hoy.Month,1);
         filterEnd = hoy;
         await LoadTransactionsAsync();
     }

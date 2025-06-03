@@ -13,23 +13,23 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowClientApp", policy =>
     {
         policy
-          .WithOrigins("http://localhost:5278")    // URL de tu Client Blazor
-          .AllowAnyHeader()                         // permitir cabeceras
-          .AllowAnyMethod();                        // permitir GET, POST, DELETE, etc.
+            .WithOrigins("http://localhost:5278")    // URL de tu Client Blazor
+            .AllowAnyHeader()                         // permitir cabeceras
+            .AllowAnyMethod();                        // permitir GET, POST, DELETE, etc.
     });
 });
 
 // 2) Configurar DbContext con la cadena en appsettings.json
 builder.Services.AddDbContext<FinanceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConexion")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 3) Registrar repositorios (Infrastructure → Domain interfaces)
 builder.Services.AddScoped<ITransactionRepository, EFCoreTransactionRepository>();
-builder.Services.AddScoped<IBudgetRepository,      EFCoreBudgetRepository>();
+builder.Services.AddScoped<IBudgetRepository, EFCoreBudgetRepository>();
 
 // 4) Registrar casos de uso / servicios (Application → UseCases interfaces)
 builder.Services.AddScoped<ITransactionUseCase, TransactionService>();
-builder.Services.AddScoped<IBudgetUseCase,      BudgetService>();
+builder.Services.AddScoped<IBudgetUseCase, BudgetService>();
 
 // 5) Añadir controladores
 builder.Services.AddControllers();
@@ -55,11 +55,20 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;          // Swagger en la raíz (https://localhost:5001/)
     });
 }
-// 
-app.UseRouting();
+else
+{
+    
+}
+    // 
+    app.UseRouting();
 // 7) Habilitamos CORS globalmente
 app.UseCors("AllowClientApp");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+using  (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<FinanceDbContext>();
+    dbContext.Database.Migrate(); // Aplicar migraciones pendientes
+}
 app.Run();

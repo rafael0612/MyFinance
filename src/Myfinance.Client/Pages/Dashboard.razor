@@ -4,6 +4,17 @@
 
 <h3>Dashboard Financiero</h3>
 
+<!-- FILTROS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <label class="form-label">Desde</label>
+        <InputDate @bind-Value="filter" class="form-control" />
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100" @onclick="LoadTransactionsAsync">Filtrar</button>
+    </div>
+</div>
+
 @if (summary is null)
 {
     <p><em>Cargando resumen mensual...</em></p>
@@ -11,22 +22,22 @@
 else
 {
     <div class="row mb-4">
-      <div class="col">
-        <div class="card p-3">
-          <h5>@($"Resumen {summary.Month}/{summary.Year}")</h5>
-          <ul class="list-unstyled">
-            <li><strong>Ingresos:</strong> @summary.Income.ToString("C")</li>
-            <li><strong>Gastos:</strong> @summary.Expense.ToString("C")</li>
-            <li><strong>Saldo:</strong> @summary.Balance.ToString("C")</li>
-          </ul>
-          @if (summary.Balance < 0)
-          {
-              <div class="alert alert-danger">
-                ¡Atención! El saldo es negativo.
-              </div>
-          }
+        <div class="col">
+            <div class="card p-3">
+                <h5>@($"Resumen {summary.Month}/{summary.Year}")</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Ingresos:</strong> @summary.Income.ToString("C")</li>
+                    <li><strong>Gastos:</strong> @summary.Expense.ToString("C")</li>
+                    <li><strong>Saldo:</strong> @summary.Balance.ToString("C")</li>
+                </ul>
+                @if (summary.Balance < 0)
+                {
+                    <div class="alert alert-danger">
+                        ¡Atención! El saldo es negativo.
+                    </div>
+                }
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Aqu� podr�as a�adir un gr�fico con Chart.js, MudBlazor, etc. -->
@@ -34,10 +45,27 @@ else
 @code {
     MonthlySummaryDto? summary;
 
+    private DateTime filter = DateTime.Now;
+
     protected override async Task OnInitializedAsync()
     {
-        var now = DateTime.Now;
-        summary = await Http
-            .GetFromJsonAsync<MonthlySummaryDto>($"api/transactions/summary/{now.Year}/{now.Month}");
+        filter = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        await LoadTransactionsAsync();
+        @* summary = await Http
+            .GetFromJsonAsync<MonthlySummaryDto>($"api/transactions/summary/{now.Year}/{now.Month}"); *@
+    }
+    private async Task LoadTransactionsAsync()
+    {
+        try
+        {
+            var filterMonth = new DateTime(filter.Year, filter.Month, 1);
+            var url = $"api/transactions/summary/{filterMonth.Year}/{filterMonth.Month}";
+            summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(url) ?? new MonthlySummaryDto();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error cargando transacciones: {ex.Message}");
+            summary = new MonthlySummaryDto();
+        }
     }
 }
