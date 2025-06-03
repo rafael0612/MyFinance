@@ -15,7 +15,7 @@ namespace MyFinance.Domain.Interfaces
         /// <sumary>
         /// Recupera una transacción por su ID.
         /// </sumary>
-        Task<Transaction> GetByIdAsync(Guid transactionId);
+        Task<Transaction?> GetByIdAsync(Guid transactionId);
         /// <sumary>
         /// Recupera transacciones filtradas por año y mes.
         /// </sumary>
@@ -26,7 +26,7 @@ namespace MyFinance.Domain.Interfaces
         Task<IEnumerable<Transaction>> GetFilteredAsync(
             DateTime? startDate,
             DateTime? endDate,
-            string? category,
+            string? transactionType,
             string? description,
             string sortField,
             bool sortDesc

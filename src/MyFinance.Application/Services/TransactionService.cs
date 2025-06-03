@@ -19,7 +19,7 @@ namespace MyFinance.Application.Services
          return list.Select(t => new TransactionDto(
             t.Id,
             t.Date,
-            t.Category!.ToString(),
+            t.TransactionType!.ToString(),
             t.Amount,
             t.Description
           ));
@@ -28,20 +28,20 @@ namespace MyFinance.Application.Services
       {
          var dto = await _repo.GetByIdAsync(id);
          return new TransactionDto(
-            dto.Id,
+            dto!.Id,
             dto.Date,
-            dto.Category!.ToString(),
+            dto.TransactionType!.ToString(),
             dto.Amount,
             dto.Description
          );
       }
       public async Task AddTransactionAsync(TransactionDto dto)
       {
-         var category = dto.Category == Category.Income.ToString() ? Category.Income : Category.Expense;
+         var transactionType = dto.TransactionType == TransactionType.Income.ToString() ? TransactionType.Income : TransactionType.Expense;
 
          var entity = new DomainEntity(
             dto.Date,
-            category,
+            transactionType,
             dto.Amount,
             dto.Description
          );
@@ -50,14 +50,14 @@ namespace MyFinance.Application.Services
       }
       public async Task<bool> UpdateTransactionAsync(TransactionDto dto)
       {
-         var category = dto.Category == Category.Income.ToString() ? Category.Income : Category.Expense;
+         var transactionType = dto.TransactionType == TransactionType.Income.ToString() ? TransactionType.Income : TransactionType.Expense;
          // 2) Obtener la entidad desde el repo
          var transaction = await _repo.GetByIdAsync(dto.Id);
          if (transaction is null)
             return false;
          // 3) Aplicar cambios sobre la entidad cargada
          transaction.ChangeDate(dto.Date);
-         transaction.ChangeCategory(category);
+         transaction.ChangeTransactionType(transactionType);
          transaction.ChangeAmount(dto.Amount);
          transaction.ChangeDescription(dto.Description);
          // 4) Persistir los cambios
@@ -72,12 +72,12 @@ namespace MyFinance.Application.Services
          var items = await _repo.GetByMonthAsync(year, month);
          foreach (var item in items)
          {
-            Console.WriteLine($"Transaction: {item.Id}, Date: {item.Date}, Category: {item.Category}, Amount: {item.Amount}");
+            Console.WriteLine($"Transaction: {item.Id}, Date: {item.Date}, Category: {item.TransactionType}, Amount: {item.Amount}");
          }
 
-         var income = items.Where(t => t.Category == Category.Income).Sum(t => t.Amount);
+         var income = items.Where(t => t.TransactionType == TransactionType.Income).Sum(t => t.Amount);
 
-         var expense = items.Where(t => t.Category == Category.Expense).Sum(t => t.Amount);
+         var expense = items.Where(t => t.TransactionType == TransactionType.Expense).Sum(t => t.Amount);
 
          Console.WriteLine($"Income: {income}, Expense: {expense}");
          Console.WriteLine($"Year: {year}, Month: {month}");
@@ -98,7 +98,7 @@ namespace MyFinance.Application.Services
             DateTime? startDate,
             DateTime? endDate,
             string? category,
-            string? description,
+            string? transactionType,
             string sortField,
             bool sortDesc
         )
@@ -106,13 +106,13 @@ namespace MyFinance.Application.Services
             // 1) Obtiene todas (o podrías tener un método de repo que acepte filtros)
             // Llamas al nuevo método del repo
             var items = await _repo.GetFilteredAsync(
-               startDate, endDate, category, description, sortField, sortDesc
+               startDate, endDate, category, transactionType, sortField, sortDesc
             );
             // Proyectas a DTO
             return items.Select(t => new TransactionDto(
                t.Id,
                t.Date,
-               t.Category!.ToString(),
+               t.TransactionType!.ToString(),
                t.Amount,
                t.Description
             ));

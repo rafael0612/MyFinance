@@ -3,7 +3,7 @@
     public record TransactionDto(
         Guid Id,
         DateTime Date,
-        string Category,
+        string TransactionType,
         decimal Amount,
         string? Description = null
     );

@@ -19,8 +19,8 @@
         <InputDate @bind-Value="filterEnd" class="form-control" />
     </div>
     <div class="col-md-2">
-        <label class="form-label">Categoría</label>
-        <InputSelect @bind-Value="filterCategory" class="form-control">
+        <label class="form-label">Tipo De Transacción</label>
+        <InputSelect @bind-Value="filterTransactionType" class="form-control">
             <option value="">Todas</option>
             <option value="Income">Income</option>
             <option value="Expense">Expense</option>
@@ -41,7 +41,7 @@
         <label class="form-label">Ordenar por</label>
         <InputSelect @bind-Value="sortField" class="form-control">
             <option value="Date">Fecha</option>
-            <option value="Category">Categoría</option>
+            <option value="TransactionType">Tipo de Trasnsacción</option>
             <option value="Description">Descripción</option>
             <option value="Amount">Monto</option>
         </InputSelect>
@@ -68,7 +68,7 @@ else
         <thead>
             <tr>
                 <th>Fecha</th>
-                <th>Categoría</th>
+                <th>Tipo de Transacción</th>
                 <th class="text-end">Monto</th>
                 <th>Descripción</th>
                 <th>Acciones</th>
@@ -79,7 +79,7 @@ else
             {
                 <tr>
                     <td>@t.Date.ToShortDateString()</td>
-                    <td>@t.Category</td>
+                    <td>@t.TransactionType</td>
                     <td class="text-end">@t.Amount.ToString("C")</td>
                     <td>@t.Description</td>
                     <td>
@@ -98,7 +98,7 @@ else
     // filtros
     private DateTime? filterStart;
     private DateTime? filterEnd;
-    private string filterCategory = "";
+    private string filterTransactionType = "";
     private string filterDescription = "";
     // ordenamiento
     private string sortField = "Date";
@@ -121,16 +121,15 @@ else
                 query["startDate"] = filterStart.Value.ToString("yyyy-MM-dd");
             if (filterEnd.HasValue)
                 query["endDate"] = filterEnd.Value.ToString("yyyy-MM-dd");
-            if (!string.IsNullOrWhiteSpace(filterCategory))
-                query["category"] = filterCategory;
+            if (!string.IsNullOrWhiteSpace(filterTransactionType))
+                query["transactionType"] = filterTransactionType;
             if (!string.IsNullOrWhiteSpace(filterDescription))
                 query["description"] = filterDescription;
             query["sortField"] = sortField;
             query["sortDesc"] = sortDesc.ToString();
 
             var url = QueryHelpers.AddQueryString("api/transactions", query!);
-            transactions = await Http.GetFromJsonAsync<List<TransactionDto>>(url)
-                           ?? new List<TransactionDto>();
+            transactions = await Http.GetFromJsonAsync<List<TransactionDto>>(url) ?? new List<TransactionDto>();
         }
         catch (Exception ex)
         {
