@@ -13,7 +13,7 @@ namespace MyFinance.Application.UseCases
         Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
             DateTime? startDate,
             DateTime? endDate,
-            string? category,
+            string? transactionType,
             string? description,
             string sortField,
             bool sortDesc

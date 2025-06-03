@@ -33,21 +33,24 @@ namespace MyFinance.Infrastructure.Repositories
         }
         public async Task<IEnumerable<Transaction>> GetAllAsync()
             => await _context.Transactions
-                              .AsNoTracking()
-                              .ToListAsync();
+                                        .AsNoTracking()
+                                        .ToListAsync();
+        /// <summary>
+        /// Devuelve la transacción por Id o null si no existe.
+        /// </summary>
         public async Task<Transaction?> GetByIdAsync(Guid transactionId)
             => await _context.Transactions
-                              .AsNoTracking()
-                              .FirstOrDefaultAsync(t => t.Id == transactionId);
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(t => t.Id == transactionId);
         public async Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month)
             => await _context.Transactions
-                              .Where(t => t.Date.Year == year && t.Date.Month == month)
-                              .AsNoTracking()
-                              .ToListAsync();
+                                        .Where(t => t.Date.Year == year && t.Date.Month == month)
+                                        .AsNoTracking()
+                                        .ToListAsync();
         public async Task<IEnumerable<Transaction>> GetFilteredAsync(
             DateTime? startDate,
             DateTime? endDate,
-            string? category,
+            string? transactionType,
             string? description,
             string sortField,
             bool sortDesc)
@@ -62,8 +65,8 @@ namespace MyFinance.Infrastructure.Repositories
             if (endDate.HasValue)
                 query = query.Where(t => t.Date.Date <= endDate.Value.Date);
 
-            if (!string.IsNullOrWhiteSpace(category))
-                query = query.Where(t => t.Category!.Name == category);
+            if (!string.IsNullOrWhiteSpace(transactionType))
+                query = query.Where(t => t.TransactionType!.Name == transactionType);
 
             if (!string.IsNullOrWhiteSpace(description))
                 query = query.Where(t =>
@@ -72,15 +75,15 @@ namespace MyFinance.Infrastructure.Repositories
             // 3) Ordenamiento
             query = (sortField, sortDesc) switch
             {
-                ("Date", false)        => query.OrderBy(t => t.Date),
-                ("Date", true)         => query.OrderByDescending(t => t.Date),
-                ("Category", false)    => query.OrderBy(t => t.Category!.Name),
-                ("Category", true)     => query.OrderByDescending(t => t.Category!.Name),
+                ("Date", false) => query.OrderBy(t => t.Date),
+                ("Date", true) => query.OrderByDescending(t => t.Date),
+                ("TransactionType", false) => query.OrderBy(t => t.TransactionType!.Name),
+                ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType!.Name),
                 ("Description", false) => query.OrderBy(t => t.Description),
-                ("Description", true)  => query.OrderByDescending(t => t.Description),
-                ("Amount", false)      => query.OrderBy(t => t.Amount),
-                ("Amount", true)       => query.OrderByDescending(t => t.Amount),
-                _                      => sortDesc
+                ("Description", true) => query.OrderByDescending(t => t.Description),
+                ("Amount", false) => query.OrderBy(t => t.Amount),
+                ("Amount", true) => query.OrderByDescending(t => t.Amount),
+                _ => sortDesc
                                             ? query.OrderByDescending(t => t.Date)
                                             : query.OrderBy(t => t.Date)
             };
