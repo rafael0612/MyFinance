@@ -19,11 +19,11 @@
         <InputDate @bind-Value="filterEnd" class="form-control" />
     </div>
     <div class="col-md-2">
-        <label class="form-label">Tipo De Transacción</label>
+        <label class="form-label">Tipo Transacción</label>
         <InputSelect @bind-Value="filterTransactionType" class="form-control">
             <option value="">Todas</option>
-            <option value="Income">Income</option>
-            <option value="Expense">Expense</option>
+            <option value="Income">Ingreso</option>
+            <option value="Expense">Gasto</option>
         </InputSelect>
     </div>
     <div class="col-md-3">
@@ -78,8 +78,10 @@ else
             @foreach (var t in transactions)
             {
                 <tr>
-                    <td>@t.Date.ToShortDateString()</td>
-                    <td>@t.TransactionType</td>
+                    <td>@t.Date.ToShortDateString()</td>                    
+                    <td>
+                        @(t.TransactionType == "Income" ? "Ingreso" : t.TransactionType == "Expense" ? "Gasto" : t.TransactionType)
+                    </td>
                     <td class="text-end">@t.Amount.ToString("C")</td>
                     <td>@t.Description</td>
                     <td>
@@ -102,12 +104,12 @@ else
     private string filterDescription = "";
     // ordenamiento
     private string sortField = "Date";
-    private bool sortDesc;    
+    private bool sortDesc;
     protected override async Task OnInitializedAsync()
     {
         // Inicializa al mes actual por defecto
         var hoy = DateTime.Today;
-        filterStart = new DateTime(hoy.Year, hoy.Month,1);
+        filterStart = new DateTime(hoy.Year, hoy.Month, 1);
         filterEnd = hoy;
         await LoadTransactionsAsync();
     }
