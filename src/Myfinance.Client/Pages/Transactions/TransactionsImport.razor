@@ -11,16 +11,37 @@
 }
 
 @code {
-    string? StatusMessage;
+    private string? StatusMessage;
 
-    async Task HandleFileSelected(InputFileChangeEventArgs e)
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
+        if (file == null || file.Size == 0)
+        {
+            StatusMessage = "Por favor, seleccione un archivo válido.";
+            return;
+        }
         var content = new MultipartFormDataContent();
-        content.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)), "file", file.Name);
 
-        var response = await Http.PostAsync("api/bulkimport/upload", content);
+        // Determinar ruta: si es CSV o Excel por extensión
+        if (file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) || file.Name.EndsWith(".xls", StringComparison.OrdinalIgnoreCase) || file.Name.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            content.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)), "file", file.Name);
+        else
+        {
+            StatusMessage = "Formato no soportado. Usa .csv o .xlsx";
+            return;
+        }
 
-        StatusMessage = response.IsSuccessStatusCode ? "Archivo importado con éxito" : "Error al importar";
+        try
+        {
+            HttpResponseMessage response = await Http.PostAsync("api/bulkimport/upload", content);
+
+            StatusMessage = response.IsSuccessStatusCode ? $"Archivo importado con éxito." : $"Error al importar {response.ReasonPhrase}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Excepción: {ex.Message}";
+        }
+
     }
 }
