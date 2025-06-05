@@ -1,6 +1,6 @@
 ﻿// MyFinance.API/Controllers/BudgetController.cs
 using Microsoft.AspNetCore.Mvc;
-using MyFinance.Application.DTOs;
+using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
 
 namespace MyFinance.API.Controllers

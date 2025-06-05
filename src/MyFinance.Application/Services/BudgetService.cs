@@ -1,4 +1,4 @@
-using MyFinance.Application.DTOs;
+using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
 using MyFinance.Domain.Interfaces;
 using DomainEntity = MyFinance.Domain.Entities.Budget;

@@ -11,6 +11,16 @@
         // Métodos estáticos para crear instancias predefinidas
         public static TransactionType Income => _income;
         public static TransactionType Expense => _expense;
+        // Método de fábrica para reconstruir desde string
+        public static TransactionType FromName(string name)
+        {
+            return name switch
+            {
+                "Income" => Income,
+                "Expense" => Expense,
+                _ => new TransactionType(name)
+            };
+        }
         // public override bool Equals(object? obj) =>
         //     obj is TransactionType other && Name == other.Name;
         public bool Equals(TransactionType? other) =>

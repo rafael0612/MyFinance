@@ -1,5 +1,5 @@
-using MyFinance.Application.DTOs;
-
+//using MyFinance.Application.DTOs;
+using MyFinance.Shared.DTOs;
 namespace MyFinance.Application.UseCases
 {
     public interface ITransactionUseCase

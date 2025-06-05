@@ -1,4 +1,5 @@
-using MyFinance.Application.DTOs;
+//using MyFinance.Application.DTOs;
+using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
 using MyFinance.Domain.Interfaces;
 using MyFinance.Domain.ValueObjects;
@@ -22,7 +23,7 @@ namespace MyFinance.Application.Services
             t.TransactionType!.ToString(),
             t.Amount,
             t.Description
-          ));
+         ));
       }
       public async Task<TransactionDto> GetTransactionByIdAsync(Guid id)
       {
@@ -91,31 +92,31 @@ namespace MyFinance.Application.Services
          );
       }
       /// <summary>
-        /// Devuelve transacciones aplicando filtros de fecha, categoría y descripción,
-        /// y luego ordenándolas según campo y sentido.
-        /// </summary>
-        public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
+      /// Devuelve transacciones aplicando filtros de fecha, categoría y descripción,
+      /// y luego ordenándolas según campo y sentido.
+      /// </summary>
+      public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
             DateTime? startDate,
             DateTime? endDate,
             string? category,
             string? transactionType,
             string sortField,
             bool sortDesc
-        )
-        {
-            // 1) Obtiene todas (o podrías tener un método de repo que acepte filtros)
-            // Llamas al nuevo método del repo
-            var items = await _repo.GetFilteredAsync(
-               startDate, endDate, category, transactionType, sortField, sortDesc
-            );
-            // Proyectas a DTO
-            return items.Select(t => new TransactionDto(
-               t.Id,
-               t.Date,
-               t.TransactionType!.ToString(),
-               t.Amount,
-               t.Description
-            ));
-        }
+      )
+      {
+         // 1) Obtiene todas (o podrías tener un método de repo que acepte filtros)
+         // Llamas al nuevo método del repo
+         var items = await _repo.GetFilteredAsync(
+            startDate, endDate, category, transactionType, sortField, sortDesc
+         );
+         // Proyectas a DTO
+         return items.Select(t => new TransactionDto(
+            t.Id,
+            t.Date,
+            t.TransactionType!.ToString(),
+            t.Amount,
+            t.Description
+         ));
+      }
    }
 }
