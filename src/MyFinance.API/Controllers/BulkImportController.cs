@@ -20,7 +20,7 @@ namespace MyFinance.API.Controllers
         public async Task<IActionResult> Upload(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("Archivo no válido");
+                    return BadRequest("Archivo no válido");
 
             var extension = Path.GetExtension(file.FileName);
             using var stream = file.OpenReadStream();

@@ -33,6 +33,8 @@ builder.Services.AddScoped<IBulkTransactionImportUseCase, BulkTransactionImportU
 // 4) Registrar casos de uso / servicios (Application → UseCases interfaces)
 builder.Services.AddScoped<ITransactionUseCase, TransactionService>();
 builder.Services.AddScoped<IBudgetUseCase, BudgetService>();
+builder.Services.AddScoped<IEmailNotificationParserService, EmailNotificationParserService>();
+
 
 // 5) Añadir controladores
 builder.Services.AddControllers();
