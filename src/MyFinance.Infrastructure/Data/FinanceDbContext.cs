@@ -20,14 +20,6 @@ namespace MyFinance.Infrastructure.Data
                 entity.HasKey(t => t.Id);
                 entity.Property(t => t.Date)
                             .IsRequired();
-
-                // TransactionType como ValueObject
-                //entity.Property(t => t.TransactionType, cb =>
-                //      {
-                //      cb.Property(c => c.Name)
-                //                  .HasColumnName("TransactionType")
-                //                  .IsRequired();
-                //  });
                 entity.Property(t => t.TransactionType)
                         .HasConversion(
                             v => v!.Name, // de TransactionType a string
