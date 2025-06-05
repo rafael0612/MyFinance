@@ -1,6 +1,7 @@
 ﻿// MyFinance.API/Controllers/TransactionsController.cs
 using Microsoft.AspNetCore.Mvc;
-using MyFinance.Application.DTOs;
+//using MyFinance.Application.DTOs;
+using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
 
 namespace MyFinance.API.Controllers

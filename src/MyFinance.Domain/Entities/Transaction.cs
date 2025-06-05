@@ -8,7 +8,7 @@ namespace MyFinance.Domain.Entities
       public DateTime Date { get; private set; }
       public TransactionType? TransactionType { get; private set; }
       public decimal Amount { get; private set; }
-      public string? Description { get; set; }
+      public string? Description { get; private set; }
 
       private Transaction() { }
       // Constructor usado al crear una transacción nueva

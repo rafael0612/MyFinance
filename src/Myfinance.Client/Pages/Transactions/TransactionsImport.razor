@@ -1,0 +1,26 @@
+﻿@page "/importar-transacciones"
+
+@inject HttpClient Http
+
+<h3>Importar transacciones (CSV/Excel)</h3>
+<InputFile OnChange="HandleFileSelected" />
+
+@if (!string.IsNullOrEmpty(StatusMessage))
+{
+    <p>@StatusMessage</p>
+}
+
+@code {
+    string? StatusMessage;
+
+    async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var content = new MultipartFormDataContent();
+        content.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)), "file", file.Name);
+
+        var response = await Http.PostAsync("api/bulkimport/upload", content);
+
+        StatusMessage = response.IsSuccessStatusCode ? "Archivo importado con éxito" : "Error al importar";
+    }
+}

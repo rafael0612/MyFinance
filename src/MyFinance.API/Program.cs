@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyFinance.Infrastructure.Data;
 using MyFinance.Infrastructure.Repositories;
+using MyFinance.Infrastructure.Services;
 using MyFinance.Domain.Interfaces;
 using MyFinance.Application.UseCases;
 using MyFinance.Application.Services;
@@ -26,6 +27,8 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
 // 3) Registrar repositorios (Infrastructure → Domain interfaces)
 builder.Services.AddScoped<ITransactionRepository, EFCoreTransactionRepository>();
 builder.Services.AddScoped<IBudgetRepository, EFCoreBudgetRepository>();
+builder.Services.AddScoped<ICsvExcelImportService, CsvExcelImportService>();
+builder.Services.AddScoped<IBulkTransactionImportUseCase, BulkTransactionImportUseCase>();
 
 // 4) Registrar casos de uso / servicios (Application → UseCases interfaces)
 builder.Services.AddScoped<ITransactionUseCase, TransactionService>();
@@ -57,16 +60,16 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    
+
 }
-    // 
-    app.UseRouting();
+// 
+app.UseRouting();
 // 7) Habilitamos CORS globalmente
 app.UseCors("AllowClientApp");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-using  (var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<FinanceDbContext>();
     dbContext.Database.Migrate(); // Aplicar migraciones pendientes
