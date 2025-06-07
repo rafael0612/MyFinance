@@ -26,6 +26,7 @@
     <table class="table table-sm table-striped">
         <thead>
             <tr>
+                <th>Nro</th>
                 <th>Fecha</th>
                 <th>Monto</th>
                 <th>Descripción</th>
@@ -36,11 +37,13 @@
             @foreach (var t in Transacciones)
             {
                 <tr>
+                    <td>@id</td>
                     <td>@t.Date.ToString("yyyy-MM-dd HH:mm")</td>
                     <td>@t.Amount.ToString("C")</td>
                     <td>@t.Description</td>
                     <td>@t.Sender</td>
                 </tr>
+                id++;
             }
         </tbody>
     </table>
@@ -50,6 +53,7 @@
     bool Enviando = false;
     string? Mensaje;
     bool Exito = false;
+    private int id = 1;
 
     List<ParsedEmailTransactionDto> Transacciones = new();
     async Task SincronizarCorreos()

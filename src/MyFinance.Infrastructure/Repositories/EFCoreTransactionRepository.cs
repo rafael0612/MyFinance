@@ -77,8 +77,8 @@ namespace MyFinance.Infrastructure.Repositories
             {
                 ("Date", false) => query.OrderBy(t => t.Date),
                 ("Date", true) => query.OrderByDescending(t => t.Date),
-                ("TransactionType", false) => query.OrderBy(t => t.TransactionType!.Name),
-                ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType!.Name),
+                ("TransactionType", false) => query.OrderBy(t => t.TransactionType!.Name!),
+                ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType!.Name!),
                 ("Description", false) => query.OrderBy(t => t.Description),
                 ("Description", true) => query.OrderByDescending(t => t.Description),
                 ("Amount", false) => query.OrderBy(t => t.Amount),

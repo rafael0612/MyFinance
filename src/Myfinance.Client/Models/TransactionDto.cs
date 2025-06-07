@@ -1,4 +1,5 @@
-﻿// MyFinance.Client/Models/TransactionDto.cs
+﻿
+// MyFinance.Client/Models/TransactionDto.cs
 namespace MyFinance.Client.Models
 {
     using System;
@@ -27,5 +28,14 @@ namespace MyFinance.Client.Models
         public string TransactionType { get; set; } = "Income";
         public decimal Amount { get; set; }
         public string? Description { get; set; }
+        public TransactionDto(){ }
+        public TransactionDto(Guid id, DateTime date, string transactionType, decimal amount, string description )
+        {
+            Id = id;
+            Date = date;
+            TransactionType = transactionType;
+            Amount = amount;
+            Description = description;
+        }
     }
 }

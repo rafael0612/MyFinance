@@ -69,6 +69,7 @@ else
     <table class="table table-striped">
         <thead>
             <tr>
+                <th>Nro</th>
                 <th>Fecha</th>
                 <th>Tipo de Transacción</th>
                 <th class="text-end">Monto</th>
@@ -80,6 +81,7 @@ else
             @foreach (var t in transactions)
             {
                 <tr>
+                    <td>@id</td>
                     <td>@t.Date.ToShortDateString()</td>                    
                     <td>
                         @(t.TransactionType == "Income" ? "Ingreso" : t.TransactionType == "Expense" ? "Gasto" : t.TransactionType)
@@ -93,6 +95,7 @@ else
                         </button>
                     </td>
                 </tr>
+                id++;
             }
         </tbody>
     </table>
@@ -107,6 +110,8 @@ else
     // ordenamiento
     private string sortField = "Date";
     private bool sortDesc;
+    private int id = 1;
+
     protected override async Task OnInitializedAsync()
     {
         // Inicializa al mes actual por defecto
@@ -134,6 +139,7 @@ else
 
             var url = QueryHelpers.AddQueryString("api/transactions", query!);
             transactions = await Http.GetFromJsonAsync<List<TransactionDto>>(url) ?? new List<TransactionDto>();
+            id = 1;
         }
         catch (Exception ex)
         {
