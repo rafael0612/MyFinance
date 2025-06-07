@@ -1,17 +1,50 @@
 ﻿@page "/importar-transacciones"
+@using Myfinance.Client.Models
 
 @inject HttpClient Http
+@inject NavigationManager Nav
 
 <h3>Importar transacciones (CSV/Excel)</h3>
 <InputFile OnChange="HandleFileSelected" />
 
 @if (!string.IsNullOrEmpty(StatusMessage))
 {
-    <p>@StatusMessage</p>
+    <div class="alert alert-info">@StatusMessage</div>
+}
+
+@if (importedTransactions?.Any() == true)
+{
+    <h5>Transacciones importadas</h5>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nro</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th class="text-end">Monto</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tx in importedTransactions)
+            {
+                <tr>
+                    <td>@id</td>
+                    <td>@tx.Date.ToShortDateString()</td>
+                    <td>@tx.TransactionType</td>
+                    <td class="text-end">@tx.Amount.ToString("C")</td>
+                    <td>@tx.Description</td>
+                </tr>
+                id++;
+            }
+        </tbody>
+    </table>
 }
 
 @code {
     private string? StatusMessage;
+    private List<TransactionDto>? importedTransactions;
+    private int id = 1;
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
@@ -36,7 +69,21 @@
         {
             HttpResponseMessage response = await Http.PostAsync("api/bulkimport/upload", content);
 
-            StatusMessage = response.IsSuccessStatusCode ? $"Archivo importado con éxito." : $"Error al importar {response.ReasonPhrase}";
+            //StatusMessage = response.IsSuccessStatusCode ? $"Archivo importado con éxito." : $"Error al importar {response.ReasonPhrase}";
+            if (!response.IsSuccessStatusCode)
+            {
+                StatusMessage = $"Error al importar: {response.ReasonPhrase}";
+                return;
+            }
+
+            // Deserializamos el JSON con message + transactionsImported
+            var result = await response.Content.ReadFromJsonAsync<TransactionsImportResponse>();
+            StatusMessage = result?.Message;
+
+            importedTransactions = result?.TransactionsImported
+                .Select(tx => new TransactionDto(
+                    tx.Id, tx.Date, tx.TransactionType, tx.Amount, tx.Description!))
+                .ToList();
         }
         catch (Exception ex)
         {

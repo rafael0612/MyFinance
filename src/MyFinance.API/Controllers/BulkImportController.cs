@@ -22,10 +22,22 @@ namespace MyFinance.API.Controllers
             if (file == null || file.Length == 0)
                     return BadRequest("Archivo no válido");
 
-            var extension = Path.GetExtension(file.FileName);
-            using var stream = file.OpenReadStream();
-            await _bulkTransactionImportUseCase.ImportAsync(stream, extension);
-            return Ok(new { message = "Transacciones importadas correctamente" });
+            //var extension = Path.GetExtension(file.FileName);
+            //using var stream = file.OpenReadStream();
+            //await _bulkTransactionImportUseCase.ImportAsync(stream, extension);
+            //return Ok(new { message = "Transacciones importadas correctamente" });
+
+            try
+            {
+                var extension = Path.GetExtension(file.FileName);
+                using var stream = file.OpenReadStream();
+                var imported = await _bulkTransactionImportUseCase.ImportAsync(stream, extension);
+                return Ok(new { message = $"Transacciones importadas correctamente. Se importaron {imported.Count}", transactionImported = imported });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
+            }
         }
     }
 }
