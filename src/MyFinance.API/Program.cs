@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using MyFinance.Application.Services;
+using MyFinance.Application.UseCases;
+using MyFinance.Domain.Interfaces;
 using MyFinance.Infrastructure.Data;
 using MyFinance.Infrastructure.Repositories;
 using MyFinance.Infrastructure.Services;
-using MyFinance.Domain.Interfaces;
-using MyFinance.Application.UseCases;
-using MyFinance.Application.Services;
+using MyFinance.Shared.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,11 +25,16 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Configurar Email IMAP settings desde appsettings.json
+builder.Services.Configure<EmailImapSettings>(
+    builder.Configuration.GetSection("EmailImapSettings"));
+
 // 3) Registrar repositorios (Infrastructure → Domain interfaces)
 builder.Services.AddScoped<ITransactionRepository, EFCoreTransactionRepository>();
 builder.Services.AddScoped<IBudgetRepository, EFCoreBudgetRepository>();
 builder.Services.AddScoped<ICsvExcelImportService, CsvExcelImportService>();
 builder.Services.AddScoped<IBulkTransactionImportUseCase, BulkTransactionImportUseCase>();
+builder.Services.AddScoped<IEmailTransactionImportUseCase, EmailTransactionImportUseCase>();
 
 // 4) Registrar casos de uso / servicios (Application → UseCases interfaces)
 builder.Services.AddScoped<ITransactionUseCase, TransactionService>();

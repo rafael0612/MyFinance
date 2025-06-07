@@ -68,10 +68,10 @@
                 var result = System.Text.Json.JsonSerializer.Deserialize<EmailImportResponse>(json,
                     new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                if (result != null && result.TransaccionesEmail!.Any())
+                if (result != null && result.TransactionImported!.Any())
                 {
-                    Transacciones = result?.TransaccionesEmail ?? new();
-                    Mensaje = $"¡Sincronización exitosa! Se importaron {result?.TransaccionesEmail!.Count} transacciones.";
+                    Transacciones = result?.TransactionImported ?? new();
+                    Mensaje = $"¡Sincronización exitosa! Se importaron {result?.TransactionImported!.Count} transacciones.";
                     Exito = true;
                 }
                 else

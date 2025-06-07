@@ -10,7 +10,13 @@ public class Program
         builder.RootComponents.Add<App>("#app");
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
-        builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5134") });
+        builder.Services.AddScoped(
+            sp => new HttpClient 
+            { 
+                BaseAddress = new Uri("http://localhost:5134"),
+                Timeout = TimeSpan.FromMinutes(5) // Configura un timeout de 5 minutos
+            }
+         );
 
         await builder.Build().RunAsync();
     }
