@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyFinance.Domain.Entities;
 using MyFinance.Domain.Interfaces;
+using MyFinance.Domain.ValueObjects;
 using MyFinance.Infrastructure.Data;
 
 namespace MyFinance.Infrastructure.Repositories
@@ -66,7 +67,9 @@ namespace MyFinance.Infrastructure.Repositories
                 query = query.Where(t => t.Date.Date <= endDate.Value.Date);
 
             if (!string.IsNullOrWhiteSpace(transactionType))
-                query = query.Where(t => t.TransactionType!.Name == transactionType);
+                query = query.Where(t => t.TransactionType == TransactionType.FromName(transactionType));
+            //if (!string.IsNullOrWhiteSpace(transactionType))
+            //    query = query.Where(t => EF.Property<string>(t, "TransactionType") == transactionType);
 
             if (!string.IsNullOrWhiteSpace(description))
                 query = query.Where(t =>
@@ -79,6 +82,8 @@ namespace MyFinance.Infrastructure.Repositories
                 ("Date", true) => query.OrderByDescending(t => t.Date),
                 ("TransactionType", false) => query.OrderBy(t => t.TransactionType!.Name!),
                 ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType!.Name!),
+                //("TransactionType", false) => query.OrderBy(t => EF.Property<string>(t, "TransactionType")),
+                //("TransactionType", true) => query.OrderByDescending(t => EF.Property<string>(t, "TransactionType")!),
                 ("Description", false) => query.OrderBy(t => t.Description),
                 ("Description", true) => query.OrderByDescending(t => t.Description),
                 ("Amount", false) => query.OrderBy(t => t.Amount),
