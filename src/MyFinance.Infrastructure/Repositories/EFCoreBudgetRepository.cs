@@ -43,6 +43,8 @@ namespace MyFinance.Infrastructure.Repositories
         public async Task<IEnumerable<Budget>> GetAllAsync()
             => await _context.Budgets
                              .AsNoTracking()
+                             .OrderBy(b => b.Year)
+                             .ThenBy(b => b.Month)
                              .ToListAsync();
     }
 }

@@ -28,7 +28,7 @@ else
                 <ul class="list-unstyled">
                     <li><strong>Ingresos:</strong> @summary.Income.ToString("C")</li>
                     <li><strong>Gastos:</strong> @summary.Expense.ToString("C")</li>
-                    <li><strong>Saldo:</strong> @summary.Balance.ToString("C")</li>
+                    <li><strong>Saldo:</strong> <span class="@BalanceClass">@summary.Balance.ToString("C")</span></li>
                 </ul>
                 @if (summary.Balance < 0)
                 {
@@ -38,13 +38,47 @@ else
                 }
             </div>
         </div>
-    </div>
-
+    </div>   
     <!-- Aqu� podr�as a�adir un gr�fico con Chart.js, MudBlazor, etc. -->
+}
+@if (budget is null)
+{
+    <p><em>Cargando presupuesto mensual...</em></p>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card p-3">
+                <h5>@($"Presupuesto vs Real del {summary!.Month}/{summary.Year}")</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Presupuesto de Gastos:</strong> @budget!.Amount.ToString("C")</li>
+                    <li><strong>Gastos Reales:</strong> @summary.Expense.ToString("C")</li>
+                    <li><strong>Balance:</strong><span class="@ExpenseVarianceClass">@ExpenseVariance.ToString("C")</span></li>
+                </ul>
+                @if (CurrentAlertThreshold < budget.AlertThreshold)
+                {
+                    <div class="alert alert-warning">
+                        ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold%.
+                    </div>
+                }
+                else if (CurrentAlertThreshold >= budget.AlertThreshold)
+                {
+                    <div class="alert alert-success">
+                        Estás dentro del presupuesto.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 }
 @code {
     MonthlySummaryDto? summary;
-
+    BudgetDto? budget;
+    private decimal ExpenseVariance;
+    private decimal CurrentAlertThreshold;
+    private string BalanceClass = string.Empty;
+    private string ExpenseVarianceClass = string.Empty;
     private DateTime filter = DateTime.Now;
 
     protected override async Task OnInitializedAsync()
@@ -59,13 +93,28 @@ else
         try
         {
             var filterMonth = new DateTime(filter.Year, filter.Month, 1);
-            var url = $"api/transactions/summary/{filterMonth.Year}/{filterMonth.Month}";
-            summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(url) ?? new MonthlySummaryDto();
+            var urlSummary = $"api/transactions/summary/{filterMonth.Year}/{filterMonth.Month}";
+            var urlBudget = $"api/budget/{filterMonth.Year}/{filterMonth.Month}";            
+            summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(urlSummary) ?? new MonthlySummaryDto();
+            budget = await Http.GetFromJsonAsync<BudgetDto>(urlBudget) ?? new BudgetDto();
+            ExpenseVariance = budget.Amount - summary.Expense;
+            CurrentAlertThreshold = ExpenseVariance / 100; // % del presupuesto
+            BalanceStyle(summary.Balance);
+            ExpenseVarianceStyle(CurrentAlertThreshold);
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error cargando transacciones: {ex.Message}");
             summary = new MonthlySummaryDto();
+            budget = new BudgetDto();
         }
+    }
+    private void BalanceStyle(decimal balance)
+    {
+        BalanceClass = balance >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+    }
+    private void ExpenseVarianceStyle(decimal variance)
+    {
+        ExpenseVarianceClass = variance >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
     }
 }
