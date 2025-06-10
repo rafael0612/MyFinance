@@ -80,13 +80,25 @@ else
         <tbody>
             @foreach (var t in transactions)
             {
+                if(t.TransactionType == "Income")
+                {
+                    amountClass = "text-success fw-bold";
+                }
+                else if(t.TransactionType == "Expense")
+                {
+                    amountClass = "text-danger fw-bold";
+                }
+                else
+                {
+                    amountClass = string.Empty;
+                }
                 <tr>
                     <td>@id</td>
                     <td>@t.Date.ToShortDateString()</td>                    
                     <td>
                         @(t.TransactionType == "Income" ? "Ingreso" : t.TransactionType == "Expense" ? "Gasto" : t.TransactionType)
                     </td>
-                    <td class="text-end">@t.Amount.ToString("C")</td>
+                    <td class="text-end @amountClass">@t.Amount.ToString("C")</td>
                     <td>@t.Description</td>
                     <td>
                         <a class="btn btn-sm btn-secondary" href="transactions/edit/@t.Id">Editar</a>
@@ -111,6 +123,7 @@ else
     private string sortField = "Date";
     private bool sortDesc;
     private int id = 1;
+    private string amountClass = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {

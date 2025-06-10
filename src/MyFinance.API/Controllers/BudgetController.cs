@@ -33,7 +33,7 @@ namespace MyFinance.API.Controllers
         public async Task<IActionResult> GetByMonth(int year, int month)
         {
             var budget = await _budgetUseCase.GetBudgetByMonthAsync(year, month);
-            if (budget is null) return NotFound();
+            if (budget == null) return NotFound("Presupuesto no encontrado para el mes y año especificados.");
             return Ok(budget);
         }
         // POST api/budget

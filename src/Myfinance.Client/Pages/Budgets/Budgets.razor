@@ -21,12 +21,17 @@ else
 {
     <table class="table table-striped">
         <thead>
-            <tr><th>Mes/Año</th><th class="text-end">Monto</th><th>Acciones</th></tr>
+            <tr>
+                <th>Nro.</th>
+                <th>Mes/Año</th>
+                <th class="text-end">Monto</th>
+                <th>Acciones</th></tr>
         </thead>
         <tbody>
             @foreach (var b in budgets)
             {
                 <tr>
+                    <td>@id</td>
                     <td>@($"{b.Month}/{b.Year}")</td>
                     <td class="text-end">@b.Amount.ToString("C")</td>
                     <td>
@@ -36,6 +41,7 @@ else
                         </button>
                     </td>
                 </tr>
+                id++;
             }
         </tbody>
     </table>
@@ -43,10 +49,12 @@ else
 
 @code {
     List<BudgetDto>? budgets;
+    private int id = 1;
 
     protected override async Task OnInitializedAsync()
     {
         budgets = await Http.GetFromJsonAsync<List<BudgetDto>>("api/budget");
+        id = 1;
     }
 
     async Task Delete(Guid id)
