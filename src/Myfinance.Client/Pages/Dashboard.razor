@@ -22,7 +22,7 @@
 else
 {
     <div class="row mb-4">
-        <div class="col">
+        <div class="col-md-6 mb-3">
             <div class="card p-3">
                 <h5>@($"Resumen {summary.Month}/{summary.Year}")</h5>
                 <ul class="list-unstyled">
@@ -36,41 +36,39 @@ else
                         ¡Atención! El saldo es negativo.
                     </div>
                 }
-            </div>
+            </div>            
         </div>
+        @if (budget is null)
+        {
+            <p><em>Cargando presupuesto vs Gastos Reales del Mes...</em></p>
+        }
+        else
+        {
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3">
+                        <h5>@($"Presupuesto vs Real del {summary!.Month}/{summary.Year}")</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Presupuesto de Gastos:</strong> @budget!.Amount.ToString("C")</li>
+                            <li><strong>Gastos Reales:</strong> @summary.Expense.ToString("C")</li>
+                            <li><strong>Balance:</strong><span class="@ExpenseVarianceClass">@ExpenseVariance.ToString("C")</span></li>
+                        </ul>
+                        @if (CurrentAlertThreshold < budget.AlertThreshold)
+                        {
+                            <div class="alert alert-warning">
+                                ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold%.
+                            </div>
+                        }
+                        else if (CurrentAlertThreshold >= budget.AlertThreshold)
+                        {
+                            <div class="alert alert-success">
+                                Estás dentro del presupuesto.
+                            </div>
+                        }
+                    </div>
+                </div>
+        }
     </div>   
     <!-- Aqu� podr�as a�adir un gr�fico con Chart.js, MudBlazor, etc. -->
-}
-@if (budget is null)
-{
-    <p><em>Cargando presupuesto mensual...</em></p>
-}
-else
-{
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card p-3">
-                <h5>@($"Presupuesto vs Real del {summary!.Month}/{summary.Year}")</h5>
-                <ul class="list-unstyled">
-                    <li><strong>Presupuesto de Gastos:</strong> @budget!.Amount.ToString("C")</li>
-                    <li><strong>Gastos Reales:</strong> @summary.Expense.ToString("C")</li>
-                    <li><strong>Balance:</strong><span class="@ExpenseVarianceClass">@ExpenseVariance.ToString("C")</span></li>
-                </ul>
-                @if (CurrentAlertThreshold < budget.AlertThreshold)
-                {
-                    <div class="alert alert-warning">
-                        ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold%.
-                    </div>
-                }
-                else if (CurrentAlertThreshold >= budget.AlertThreshold)
-                {
-                    <div class="alert alert-success">
-                        Estás dentro del presupuesto.
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
 }
 @code {
     MonthlySummaryDto? summary;
