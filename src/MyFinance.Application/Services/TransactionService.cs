@@ -4,6 +4,7 @@ using MyFinance.Application.UseCases;
 using MyFinance.Domain.Interfaces;
 using MyFinance.Domain.ValueObjects;
 using DomainEntity = MyFinance.Domain.Entities.Transaction;
+using MyFinance.Shared;
 
 namespace MyFinance.Application.Services
 {
@@ -117,6 +118,42 @@ namespace MyFinance.Application.Services
             t.Amount,
             t.Description
          ));
+      }
+      /// <summary>
+      /// Obtiene las transacciones por rango de fechas.
+      /// </summary>
+      /// <param name="start">Fecha de inicio.</param>
+      ///  <param name="end">Fecha de fin.</param>
+      /// <returns>Lista de transacciones.</returns>
+      /// <remarks>
+      public async Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end)
+      {
+         // 1) Trae todas las transacciones en rango
+         var txs = await _repo.GetByDateRangeAsync(start, end);
+
+         // 2) Filtra sólo Expense y agrupa por día
+         var exp = txs
+            .Where(t => t.TransactionType == TransactionType.Expense)
+            .GroupBy(t => t.Date.Date)
+            .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
+         var inc = txs
+            .Where(t => t.TransactionType == TransactionType.Income)
+            .GroupBy(t => t.Date.Date)
+            .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
+
+         // 3) Genera la lista de fechas desde start a end
+         var list = new List<DailyTransactionDto>();
+         for (var day = start.Date; day <= end.Date; day = day.AddDays(1))
+         {
+            list.Add(new DailyTransactionDto
+            {
+               Date = day,
+               ExpenseAmount = exp.TryGetValue(day, out var sum) ? sum : 0m,
+               IncomeAmount = inc.TryGetValue(day, out var incSum) ? incSum : 0m
+            });
+         }
+
+         return list;
       }
    }
 }

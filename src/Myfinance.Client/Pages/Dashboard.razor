@@ -1,6 +1,5 @@
 @page "/"
 @inject HttpClient Http
-@using MyFinance.Client.Models
 
 <h3>Dashboard Financiero</h3>
 
@@ -11,7 +10,9 @@
         <InputDate @bind-Value="filter" class="form-control" />
     </div>
     <div class="col-md-1 d-flex align-items-end">
-        <button class="btn btn-primary w-100" @onclick="LoadTransactionsAsync">Filtrar</button>
+        <button class="btn btn-primary w-100" @onclick="LoadTransactionsAsync">
+            Filtrar
+        </button>
     </div>
 </div>
 
@@ -28,7 +29,10 @@ else
                 <ul class="list-unstyled">
                     <li><strong>Ingresos:</strong> @summary.Income.ToString("C")</li>
                     <li><strong>Gastos:</strong> @summary.Expense.ToString("C")</li>
-                    <li><strong>Saldo:</strong> <span class="@BalanceClass">@summary.Balance.ToString("C")</span></li>
+                    <li>
+                        <strong>Saldo:</strong>
+                        <span class="@BalanceClass">@summary.Balance.ToString("C")</span>
+                    </li>
                 </ul>
                 @if (summary.Balance < 0)
                 {
@@ -36,7 +40,7 @@ else
                         ¡Atención! El saldo es negativo.
                     </div>
                 }
-            </div>            
+            </div>
         </div>
         @if (budget is null)
         {
@@ -44,75 +48,199 @@ else
         }
         else
         {
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3">
-                        <h5>@($"Presupuesto vs Real del {summary!.Month}/{summary.Year}")</h5>
-                        <ul class="list-unstyled">
-                            <li><strong>Presupuesto de Gastos:</strong> @budget!.Amount.ToString("C")</li>
-                            <li><strong>Gastos Reales:</strong> @summary.Expense.ToString("C")</li>
-                            <li><strong>Balance:</strong><span class="@ExpenseVarianceClass">@ExpenseVariance.ToString("C")</span></li>
-                        </ul>
-                        @if (CurrentAlertThreshold < budget.AlertThreshold)
-                        {
-                            <div class="alert alert-warning">
-                                ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold%.
-                            </div>
-                        }
-                        else if (CurrentAlertThreshold >= budget.AlertThreshold)
-                        {
-                            <div class="alert alert-success">
-                                Estás dentro del presupuesto.
-                            </div>
-                        }
-                    </div>
+            <div class="col-md-6 mb-3">
+                <div class="card p-3">
+                    <h5>@($"Presupuesto vs Real del {summary.Month}/{summary.Year}")</h5>
+                    <ul class="list-unstyled">
+                        <li>
+                            <strong>Presupuesto de Gastos:</strong>
+                            @budget.Amount.ToString("C")
+                        </li>
+                        <li>
+                            <strong>Gastos Reales:</strong>
+                            @summary.Expense.ToString("C")
+                        </li>
+                        <li>
+                            <strong>Balance:</strong>
+                            <span class="@ExpenseVarianceClass">
+                                @ExpenseVariance.ToString("C")
+                            </span>
+                        </li>
+                    </ul>
+                    @if (CurrentAlertThreshold < budget.AlertThreshold)
+                    {
+                        <div class="alert alert-warning">
+                            ¡Atención! Has superado el umbral de alerta de
+                            @budget.AlertThreshold:P0.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+                            Estás dentro del presupuesto.
+                        </div>
+                    }
                 </div>
+            </div>
         }
-    </div>   
-    <!-- Aqu� podr�as a�adir un gr�fico con Chart.js, MudBlazor, etc. -->
+    </div>
 }
+
+<!-- NUEVO BLOQUE: GASTOS DIARIOS -->
+<h4 class="mt-5">Gastos diarios</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <label class="form-label">Desde</label>
+        <InputDate @bind-Value="expenseStartDate" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Hasta</label>
+        <InputDate @bind-Value="expenseEndDate" class="form-control" />
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100" @onclick="LoadDailyTransactionsAsync">
+            Filtrar
+        </button>
+    </div>
+</div>
+
+@if (dailyTransactions == null)
+{
+    <p><em>Cargando gastos diarios…</em></p>
+}
+else
+{
+    <MudChart 
+        ChartType="ChartType.Bar" 
+        ChartSeries="@barSeries" 
+        XAxisLabels="@barLabels" 
+        Width="@_width" 
+        Height="@_height"
+        AxisChartOptions="_axisChartOptions">        
+    </MudChart>
+    <MudChart 
+        ChartType="ChartType.Line" 
+        ChartSeries="@barSeries" 
+        XAxisLabels="@barLabels" 
+        Width="@_width" 
+        Height="@_height" 
+        ChartOptions="@_options" 
+        AxisChartOptions="_axisChartOptions" />
+}
+
 @code {
-    MonthlySummaryDto? summary;
-    BudgetDto? budget;
+    // Estado principal
+    private MonthlySummaryDto? summary;
+    private BudgetDto? budget;
     private decimal ExpenseVariance;
     private decimal CurrentAlertThreshold;
-    private string BalanceClass = string.Empty;
-    private string ExpenseVarianceClass = string.Empty;
+    private string BalanceClass = "";
+    private string ExpenseVarianceClass = "";
     private DateTime filter = DateTime.Now;
+
+    // Estado del gráfico de gastos diarios
+    private List<DailyTransactionViewDto>? dailyTransactions;
+    private DateTime expenseStartDate;
+    private DateTime expenseEndDate;    
+    private string[] barLabels = Array.Empty<string>();
+    private List<ChartSeries>? barSeries;
+    private string _width = "100%";
+    private string _height = "350px";
+    private ChartOptions _options = new ChartOptions();
+    private AxisChartOptions _axisChartOptions = new AxisChartOptions();
 
     protected override async Task OnInitializedAsync()
     {
         filter = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
         await LoadTransactionsAsync();
-        @* summary = await Http
-            .GetFromJsonAsync<MonthlySummaryDto>($"api/transactions/summary/{now.Year}/{now.Month}"); *@
+
+        expenseStartDate = filter;
+        expenseEndDate = filter.AddMonths(1).AddDays(-1);
+        await LoadDailyTransactionsAsync();
     }
+
     private async Task LoadTransactionsAsync()
     {
         try
         {
-            var filterMonth = new DateTime(filter.Year, filter.Month, 1);
-            var urlSummary = $"api/transactions/summary/{filterMonth.Year}/{filterMonth.Month}";
-            var urlBudget = $"api/budget/{filterMonth.Year}/{filterMonth.Month}";            
-            summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(urlSummary) ?? new MonthlySummaryDto();
-            budget = await Http.GetFromJsonAsync<BudgetDto>(urlBudget) ?? new BudgetDto();
-            ExpenseVariance = budget.Amount - summary.Expense;
-            CurrentAlertThreshold = ExpenseVariance / 100; // % del presupuesto
-            BalanceStyle(summary.Balance);
-            ExpenseVarianceStyle(CurrentAlertThreshold);
+            var fm = new DateTime(filter.Year, filter.Month, 1);
+            summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(
+                $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
+            budget = await Http.GetFromJsonAsync<BudgetDto>(
+                $"api/budget/{fm:yyyy}/{fm:MM}");
+            if (summary is not null && budget is not null)
+            {
+                ExpenseVariance = budget.Amount - summary.Expense;
+                CurrentAlertThreshold = ExpenseVariance / budget.Amount;
+                BalanceStyle(summary.Balance);
+                ExpenseVarianceStyle(CurrentAlertThreshold);
+            }
         }
-        catch (Exception ex)
+        catch
         {
-            Console.Error.WriteLine($"Error cargando transacciones: {ex.Message}");
             summary = new MonthlySummaryDto();
             budget = new BudgetDto();
         }
     }
-    private void BalanceStyle(decimal balance)
-    {
-        BalanceClass = balance >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
-    }
-    private void ExpenseVarianceStyle(decimal variance)
-    {
-        ExpenseVarianceClass = variance >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+
+    private void BalanceStyle(decimal bal) =>
+        BalanceClass = bal >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+
+    private void ExpenseVarianceStyle(decimal var) =>
+        ExpenseVarianceClass = var >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+
+    private async Task LoadDailyTransactionsAsync()
+    {        
+        var url = $"api/transactions/daily-expenses" +
+                $"?start={expenseStartDate:yyyy-MM-dd}" +
+                $"&end={expenseEndDate:yyyy-MM-dd}";
+        // Lee directamente el array que devuelve el servidor
+        dailyTransactions = await Http.GetFromJsonAsync<List<DailyTransactionViewDto>>(url)
+                        ?? new List<DailyTransactionViewDto>();
+        if (dailyTransactions?.Any() == true)
+        {
+            // Etiquetas X: día del mes
+            barLabels = dailyTransactions
+                .Select(d => d.Date.ToString("dd"))
+                .ToArray();
+            // 3) Series: objeto con el nombre y los datos
+            // Construye las dos series
+            barSeries = new List<ChartSeries>
+            {
+                new ChartSeries
+                {
+                    Name = "Gastos",
+                    Data = dailyTransactions
+                        .Select(d => (double)d.ExpenseAmount)
+                        .ToArray()                        
+                },
+                new ChartSeries
+                {
+                    Name = "Ingresos",
+                    Data = dailyTransactions
+                        .Select(d => (double)d.IncomeAmount)
+                        .ToArray()                        
+                }
+            };
+        }
+        else
+        {
+            barLabels = Array.Empty<string>();
+            barSeries = new List<ChartSeries>
+            {
+                new ChartSeries
+                {
+                    Name = "Gastos",
+                    Data = Array.Empty<double>()
+                },
+                new ChartSeries
+                {
+                    Name = "Ingresos",
+                    Data = Array.Empty<double>()
+                },
+            };
+        }
+        StateHasChanged();
     }
 }

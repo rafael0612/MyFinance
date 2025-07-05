@@ -31,5 +31,13 @@ namespace MyFinance.Domain.Interfaces
             string sortField,
             bool sortDesc
         );
+        /// <summary>
+        /// Recupera transacciones por rango de fechas.
+        /// </summary>
+        /// <param name="start">Fecha de inicio.</param>
+        /// <param name="end">Fecha de fin.</param>
+        /// returns>Lista de transacciones.</returns>
+        /// <remarks>
+        Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end);
     }
 }

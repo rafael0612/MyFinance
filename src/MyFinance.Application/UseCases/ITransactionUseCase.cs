@@ -1,4 +1,5 @@
 //using MyFinance.Application.DTOs;
+using MyFinance.Shared;
 using MyFinance.Shared.DTOs;
 namespace MyFinance.Application.UseCases
 {
@@ -18,5 +19,6 @@ namespace MyFinance.Application.UseCases
             string sortField,
             bool sortDesc
         );
+        Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end);
     }
 }
