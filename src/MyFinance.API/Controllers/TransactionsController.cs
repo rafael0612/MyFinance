@@ -71,5 +71,12 @@ namespace MyFinance.API.Controllers
             var summary = await _transactionUseCase.GetMonthlySummaryAsync(year, month);
             return Ok(summary);
         }
+        [HttpGet("daily-expenses")]
+        public async Task<IActionResult> GetDailyExpenses([FromQuery] DateTime start, [FromQuery] DateTime end)
+        {
+            if (end < start) return BadRequest("El rango es inválido.");
+            var data = await _transactionUseCase.GetDailyExpensesAsync(start, end);
+            return Ok(data);
+        }
     }
 }

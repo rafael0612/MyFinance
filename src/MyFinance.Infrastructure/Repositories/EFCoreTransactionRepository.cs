@@ -95,5 +95,14 @@ namespace MyFinance.Infrastructure.Repositories
             // 4) Ejecuta en la base de datos
             return await query.ToListAsync();
         }
+        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end)
+        {
+            return await _context.Transactions
+                .Where(t =>
+                    t.Date.Date >= start.Date &&
+                    t.Date.Date <= end.Date)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }
