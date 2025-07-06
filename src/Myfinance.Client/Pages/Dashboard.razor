@@ -70,11 +70,10 @@ else
                     @if (CurrentAlertThreshold < budget.AlertThreshold)
                     {
                         <div class="alert alert-warning">
-                            ¡Atención! Has superado el umbral de alerta de
-                            @budget.AlertThreshold:P0.
+                            ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold%.
                         </div>
                     }
-                    else
+                    else if (CurrentAlertThreshold >= budget.AlertThreshold)
                     {
                         <div class="alert alert-success">
                             Estás dentro del presupuesto.
@@ -111,22 +110,11 @@ else
 }
 else
 {
-    <MudChart 
-        ChartType="ChartType.Bar" 
-        ChartSeries="@barSeries" 
-        XAxisLabels="@barLabels" 
-        Width="@_width" 
-        Height="@_height"
-        AxisChartOptions="_axisChartOptions">        
+    <MudChart ChartType="ChartType.Bar" ChartSeries="@barSeries" XAxisLabels="@barLabels" Width="@_width" Height="@_height"
+        AxisChartOptions="_axisChartOptions">
     </MudChart>
-    <MudChart 
-        ChartType="ChartType.Line" 
-        ChartSeries="@barSeries" 
-        XAxisLabels="@barLabels" 
-        Width="@_width" 
-        Height="@_height" 
-        ChartOptions="@_options" 
-        AxisChartOptions="_axisChartOptions" />
+    <MudChart ChartType="ChartType.Line" ChartSeries="@barSeries" XAxisLabels="@barLabels" Width="@_width" Height="@_height"
+        ChartOptions="@_options" AxisChartOptions="_axisChartOptions" />
 }
 
 @code {
@@ -135,14 +123,14 @@ else
     private BudgetDto? budget;
     private decimal ExpenseVariance;
     private decimal CurrentAlertThreshold;
-    private string BalanceClass = "";
-    private string ExpenseVarianceClass = "";
+    private string BalanceClass = string.Empty;
+    private string ExpenseVarianceClass = string.Empty;
     private DateTime filter = DateTime.Now;
 
     // Estado del gráfico de gastos diarios
     private List<DailyTransactionViewDto>? dailyTransactions;
     private DateTime expenseStartDate;
-    private DateTime expenseEndDate;    
+    private DateTime expenseEndDate;
     private string[] barLabels = Array.Empty<string>();
     private List<ChartSeries>? barSeries;
     private string _width = "100%";
@@ -166,81 +154,87 @@ else
         {
             var fm = new DateTime(filter.Year, filter.Month, 1);
             summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(
-                $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
+            $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
             budget = await Http.GetFromJsonAsync<BudgetDto>(
-                $"api/budget/{fm:yyyy}/{fm:MM}");
+            $"api/budget/{fm:yyyy}/{fm:MM}");
             if (summary is not null && budget is not null)
             {
                 ExpenseVariance = budget.Amount - summary.Expense;
-                CurrentAlertThreshold = ExpenseVariance / budget.Amount;
+                CurrentAlertThreshold = ExpenseVariance / 100; // % del presupuesto
                 BalanceStyle(summary.Balance);
                 ExpenseVarianceStyle(CurrentAlertThreshold);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"Error cargando transacciones: {ex.Message}");
             summary = new MonthlySummaryDto();
             budget = new BudgetDto();
         }
     }
 
     private void BalanceStyle(decimal bal) =>
-        BalanceClass = bal >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+    BalanceClass = bal >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
 
     private void ExpenseVarianceStyle(decimal var) =>
-        ExpenseVarianceClass = var >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+    ExpenseVarianceClass = var >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
 
     private async Task LoadDailyTransactionsAsync()
-    {        
-        var url = $"api/transactions/daily-expenses" +
-                $"?start={expenseStartDate:yyyy-MM-dd}" +
-                $"&end={expenseEndDate:yyyy-MM-dd}";
-        // Lee directamente el array que devuelve el servidor
-        dailyTransactions = await Http.GetFromJsonAsync<List<DailyTransactionViewDto>>(url)
-                        ?? new List<DailyTransactionViewDto>();
-        if (dailyTransactions?.Any() == true)
+    {
+        try
         {
-            // Etiquetas X: día del mes
-            barLabels = dailyTransactions
-                .Select(d => d.Date.ToString("dd"))
-                .ToArray();
-            // 3) Series: objeto con el nombre y los datos
-            // Construye las dos series
-            barSeries = new List<ChartSeries>
+            var url = $"api/transactions/daily-expenses" +
+            $"?start={expenseStartDate:yyyy-MM-dd}" +
+            $"&end={expenseEndDate:yyyy-MM-dd}";
+            // Lee directamente el array que devuelve el servidor
+            dailyTransactions = await Http.GetFromJsonAsync<List<DailyTransactionViewDto>>(url)
+            ?? new List<DailyTransactionViewDto>();
+            if (dailyTransactions?.Any() == true)
             {
-                new ChartSeries
-                {
-                    Name = "Gastos",
-                    Data = dailyTransactions
-                        .Select(d => (double)d.ExpenseAmount)
-                        .ToArray()                        
-                },
-                new ChartSeries
-                {
-                    Name = "Ingresos",
-                    Data = dailyTransactions
-                        .Select(d => (double)d.IncomeAmount)
-                        .ToArray()                        
-                }
-            };
+                // Etiquetas X: día del mes
+                barLabels = dailyTransactions
+                                .Select(d => d.Date.ToString("dd"))
+                                .ToArray();
+                // 3) Series: objeto con el nombre y los datos
+                // Construye las dos series
+                barSeries = new List<ChartSeries>
+                                {
+                                    new ChartSeries
+                                    {
+                                        Name = "Gastos",
+                                        Data = dailyTransactions
+                                                    .Select(d => (double)d.ExpenseAmount)
+                                                    .ToArray()
+                                    },
+                                    new ChartSeries
+                                    {
+                                        Name = "Ingresos",
+                                        Data = dailyTransactions
+                                                    .Select(d => (double)d.IncomeAmount)
+                                                    .ToArray()
+                                    }
+                                };
+            }
+            StateHasChanged();
         }
-        else
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"Error cargando gastos diarios: {ex.Message}");
+            dailyTransactions = new List<DailyTransactionViewDto>();
             barLabels = Array.Empty<string>();
             barSeries = new List<ChartSeries>
-            {
-                new ChartSeries
-                {
-                    Name = "Gastos",
-                    Data = Array.Empty<double>()
-                },
-                new ChartSeries
-                {
-                    Name = "Ingresos",
-                    Data = Array.Empty<double>()
-                },
-            };
+                            {
+                                new ChartSeries
+                                    {
+                                        Name = "Gastos",
+                                        Data = Array.Empty<double>()
+                                    },
+                                new ChartSeries
+                                    {
+                                        Name = "Ingresos",
+                                        Data = Array.Empty<double>()
+                                    },
+                            };
         }
-        StateHasChanged();
     }
 }
