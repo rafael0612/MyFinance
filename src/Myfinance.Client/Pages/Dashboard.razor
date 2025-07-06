@@ -110,11 +110,23 @@ else
 }
 else
 {
-    <MudChart ChartType="ChartType.Bar" ChartSeries="@barSeries" XAxisLabels="@barLabels" Width="@_width" Height="@_height"
+    <MudChart 
+        ChartType="ChartType.Bar" 
+        ChartSeries="@barSeries" 
+        XAxisLabels="@barLabels" 
+        Width="@_width" 
+        Height="@_height"
         AxisChartOptions="_axisChartOptions">
     </MudChart>
-    <MudChart ChartType="ChartType.Line" ChartSeries="@barSeries" XAxisLabels="@barLabels" Width="@_width" Height="@_height"
-        ChartOptions="@_options" AxisChartOptions="_axisChartOptions" />
+    <MudChart 
+        ChartType="ChartType.Line" 
+        ChartSeries="@barSeries" 
+        XAxisLabels="@barLabels" 
+        Width="@_width" 
+        Height="@_height"
+        ChartOptions="@_options" 
+        AxisChartOptions="_axisChartOptions">
+    </MudChart>
 }
 
 @code {
