@@ -166,7 +166,7 @@ else
         {
             var fm = new DateTime(filter.Year, filter.Month, 1);
             summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(
-            $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
+            requestUri: $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
             budget = await Http.GetFromJsonAsync<BudgetDto>(
             $"api/budget/{fm:yyyy}/{fm:MM}");
             if (summary is not null && budget is not null)

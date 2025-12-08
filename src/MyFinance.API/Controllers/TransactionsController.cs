@@ -41,6 +41,11 @@ namespace MyFinance.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] TransactionDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.TipoIngreso) || string.IsNullOrWhiteSpace(dto.OrigenIngreso))
+            {
+                return BadRequest("Los campos TipoIngreso y OrigenIngreso son obligatorios.");
+            }
+
             await _transactionUseCase.AddTransactionAsync(dto);
             // devolvemos 201 Created sin ubicación específica
             return CreatedAtAction(nameof(GetAll), null);
@@ -51,6 +56,12 @@ namespace MyFinance.API.Controllers
         {
             if (id != dto.Id)
                 return BadRequest("El Id de la ruta y del cuerpo no coinciden.");
+
+            if (string.IsNullOrWhiteSpace(dto.TipoIngreso) || string.IsNullOrWhiteSpace(dto.OrigenIngreso))
+            {
+                return BadRequest("Los campos TipoIngreso y OrigenIngreso son obligatorios.");
+            }
+
             var updated = await _transactionUseCase.UpdateTransactionAsync(dto);
             if (!updated)
                 return NotFound("Transacción no encontrada.");

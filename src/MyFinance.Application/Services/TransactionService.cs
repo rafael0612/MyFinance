@@ -1,4 +1,3 @@
-//using MyFinance.Application.DTOs;
 using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
 using MyFinance.Domain.Interfaces;
@@ -23,7 +22,13 @@ namespace MyFinance.Application.Services
             t.Date,
             t.TransactionType!.ToString(),
             t.Amount,
-            t.Description
+            t.TipoIngreso,
+            t.OrigenIngreso,
+            t.Description,
+            t.ExpenseCategory ?? string.Empty,
+            t.EsFijo,
+            t.NaturalezaGasto,
+            t.NivelNecesidad
          ));
       }
       public async Task<TransactionDto> GetTransactionByIdAsync(Guid id)
@@ -34,7 +39,13 @@ namespace MyFinance.Application.Services
             dto.Date,
             dto.TransactionType!.ToString(),
             dto.Amount,
-            dto.Description
+            dto.TipoIngreso,
+            dto.OrigenIngreso,
+            dto.Description,
+            dto.ExpenseCategory ?? string.Empty,
+            dto.EsFijo,
+            dto.NaturalezaGasto,
+            dto.NivelNecesidad
          );
       }
       public async Task AddTransactionAsync(TransactionDto dto)
@@ -45,7 +56,13 @@ namespace MyFinance.Application.Services
             dto.Date,
             transactionType,
             dto.Amount,
-            dto.Description
+            dto.TipoIngreso,
+            dto.OrigenIngreso,
+            dto.Description,
+            dto.ExpenseCategory,
+            dto.NivelNecesidad,
+            dto.NaturalezaGasto,
+            dto.EsFijo
          );
 
          await _repo.AddAsync(entity);
@@ -61,7 +78,13 @@ namespace MyFinance.Application.Services
          transaction.ChangeDate(dto.Date);
          transaction.ChangeTransactionType(transactionType);
          transaction.ChangeAmount(dto.Amount);
+         transaction.ChangeTipoIngreso(dto.TipoIngreso);
+         transaction.ChangeOrigenIngreso(dto.OrigenIngreso);
          transaction.ChangeDescription(dto.Description);
+         transaction.ChangeExpenseCategory(dto.ExpenseCategory);
+         transaction.ChangeNivelNecesidad(dto.NivelNecesidad);
+         transaction.ChangeNaturalezaGasto(dto.NaturalezaGasto);
+         transaction.ChangeEsFijo(dto.EsFijo);
          // 4) Persistir los cambios
          return await _repo.UpdateAsync(transaction);
       }
@@ -116,7 +139,13 @@ namespace MyFinance.Application.Services
             t.Date,
             t.TransactionType!.ToString(),
             t.Amount,
-            t.Description
+            t.TipoIngreso,
+            t.OrigenIngreso,
+            t.Description,
+            t.ExpenseCategory ?? string.Empty,
+            t.EsFijo,
+            t.NaturalezaGasto,
+            t.NivelNecesidad
          ));
       }
       /// <summary>

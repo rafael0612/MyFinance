@@ -1,0 +1,73 @@
+@page "/financial-indicators"
+@inject HttpClient Http
+
+<h3>Indicadores Financieros</h3>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="year" class="form-label">Año:</label>
+                <input id="year" type="number" class="form-control" @bind="Year" min="2000" max="@DateTime.Now.Year" />
+            </div>
+            <div class="col-auto">
+                <label for="month" class="form-label">Mes:</label>
+                <input id="month" type="number" class="form-control" @bind="Month" min="1" max="12" />
+            </div>
+            <div class="col-auto mt-4">
+                <button class="btn btn-primary" @onclick="FetchIndicators">Obtener indicadores</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Indicators != null)
+{
+    <div class="card">
+        <div class="card-header">
+            <strong>Indicadores para @Year/@Month</strong>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <span class="fw-bold">Saldo mensual:</span>
+                    <span class="ms-2">@Indicators.MonthlyBalance.ToString("C")</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="fw-bold">Tasa de ahorro mensual:</span>
+                    <span class="ms-2">@Indicators.MonthlySavingsRate.ToString("F2")%</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="fw-bold">% de gastos esenciales:</span>
+                    <span class="ms-2">@Indicators.EssentialExpensesPercentage.ToString("F2")%</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="fw-bold">% de gastos no esenciales:</span>
+                    <span class="ms-2">@Indicators.NonEssentialExpensesPercentage.ToString("F2")%</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="fw-bold">% de gastos por deudas:</span>
+                    <span class="ms-2">@Indicators.DebtExpensesPercentage.ToString("F2")%</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private int Year = DateTime.Now.Year;
+    private int Month = DateTime.Now.Month;
+    private FinancialIndicatorsDto? Indicators;
+
+    private async Task FetchIndicators()
+    {
+        try
+        {
+            Indicators = await Http.GetFromJsonAsync<FinancialIndicatorsDto>($"api/FinancialIndicators/{Year}/{Month}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener indicadores: {ex.Message}");
+        }
+    }
+}

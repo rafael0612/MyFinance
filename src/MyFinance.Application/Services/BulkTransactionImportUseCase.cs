@@ -28,7 +28,14 @@ namespace MyFinance.Application.Services
             foreach (var tx in transactions)
             {
                 var transactionType = tx.TransactionType == TransactionType.Income.ToString() ? TransactionType.Income : TransactionType.Expense;
-                var entity = new DomainEntity(tx.Date, transactionType, tx.Amount, tx.Description);
+                var entity = new DomainEntity(
+                    tx.Date,
+                    transactionType,
+                    tx.Amount,
+                    tx.TipoIngreso ?? "Activo", // Valor predeterminado
+                    tx.OrigenIngreso ?? "Importación masiva", // Valor predeterminado
+                    tx.Description
+                );
                 await _transactionRepository.AddAsync(entity); // O mejor aún, un método AddRangeAsync para mayor eficiencia
                 transactionProcessed.Add(tx);
             }

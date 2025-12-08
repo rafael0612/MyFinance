@@ -73,9 +73,13 @@ namespace MyFinance.Infrastructure.Services
             string description = string.IsNullOrWhiteSpace(columns[4].ToString()) ? "Importado desde Yape." : columns[4].Trim();
             DateTime date = ParseDate(columns[5]);
 
+            // Nuevos campos
+            string tipoIngreso = "Activo"; // Valor predeterminado
+            string origenIngreso = "Importación CSV"; // Valor predeterminado
+
             if (!string.IsNullOrWhiteSpace(transactionType) && amount > 0 && date != DateTime.MinValue)
             {
-                return new TransactionDto(Guid.Empty, date, transactionType, amount, description);
+                return new TransactionDto(Guid.Empty, date, transactionType, amount, tipoIngreso, origenIngreso, description);
             }
             return null;
         }
@@ -88,9 +92,13 @@ namespace MyFinance.Infrastructure.Services
             string description = string.IsNullOrWhiteSpace(row.Cell(5).GetString()) ? "Importado desde Yape." : row.Cell(5).GetString().Trim();
             DateTime date = ParseDate(row.Cell(6).GetString());
 
+            // Nuevos campos
+            string tipoIngreso = "Activo"; // Valor predeterminado
+            string origenIngreso = "Importación XLSX"; // Valor predeterminado
+
             if (!string.IsNullOrWhiteSpace(transactionType) && amount > 0 && date != DateTime.MinValue)
             {
-                return new TransactionDto(Guid.Empty, date, transactionType, amount, description);
+                return new TransactionDto(Guid.Empty, date, transactionType, amount, tipoIngreso, origenIngreso, description);
             }
             return null;
         }

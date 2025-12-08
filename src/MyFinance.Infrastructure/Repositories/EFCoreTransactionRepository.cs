@@ -80,8 +80,8 @@ namespace MyFinance.Infrastructure.Repositories
             {
                 ("Date", false) => query.OrderBy(t => t.Date),
                 ("Date", true) => query.OrderByDescending(t => t.Date),
-                ("TransactionType", false) => query.OrderBy(t => t.TransactionType!.Name!),
-                ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType!.Name!),
+                ("TransactionType", false) => query.OrderBy(t => t.TransactionType),
+                ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType),
                 //("TransactionType", false) => query.OrderBy(t => EF.Property<string>(t, "TransactionType")),
                 //("TransactionType", true) => query.OrderByDescending(t => EF.Property<string>(t, "TransactionType")!),
                 ("Description", false) => query.OrderBy(t => t.Description),
@@ -101,6 +101,14 @@ namespace MyFinance.Infrastructure.Repositories
                 .Where(t =>
                     t.Date.Date >= start.Date &&
                     t.Date.Date <= end.Date)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period)
+        {
+            return await _context.Transactions
+                .Where(t => t.Date.Year == period.Year && t.Date.Month == period.Month)
                 .AsNoTracking()
                 .ToListAsync();
         }

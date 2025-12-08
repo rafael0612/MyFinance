@@ -23,6 +23,12 @@
                 <th>Tipo</th>
                 <th class="text-end">Monto</th>
                 <th>Descripción</th>
+                <th>Tipo Ingreso</th>
+                <th>Origen Ingreso</th>
+                <th>Categoría Gasto</th>
+                <th>Es Fijo</th>
+                <th>Naturaleza Gasto</th>
+                <th>Nivel Necesidad</th>
             </tr>
         </thead>
         <tbody>
@@ -34,6 +40,12 @@
                     <td>@tx.TransactionType</td>
                     <td class="text-end">@tx.Amount.ToString("C")</td>
                     <td>@tx.Description</td>
+                    <td>@tx.TipoIngreso</td>
+                    <td>@tx.OrigenIngreso</td>
+                    <td>@tx.ExpenseCategory</td>
+                    <td>@(tx.EsFijo ? "Sí" : "No")</td>
+                    <td>@tx.NaturalezaGasto</td>
+                    <td>@tx.NivelNecesidad</td>
                 </tr>
                 id++;
             }
@@ -82,13 +94,23 @@
 
             importedTransactions = result?.TransactionsImported
                 .Select(tx => new TransactionDto(
-                    tx.Id, tx.Date, tx.TransactionType, tx.Amount, tx.Description!))
+                    tx.Id,
+                    tx.Date,
+                    tx.TransactionType, 
+                    tx.Amount,
+                    tx.TipoIngreso ?? "Activo",
+                    tx.OrigenIngreso ?? "Importación",
+                    tx.Description ?? string.Empty,
+                    tx.ExpenseCategory ?? string.Empty,
+                    tx.EsFijo,
+                    tx.NaturalezaGasto ?? "Consumo",
+                    tx.NivelNecesidad ?? "Esencial"
+                ))
                 .ToList();
         }
         catch (Exception ex)
         {
             StatusMessage = $"Excepción: {ex.Message}";
         }
-
     }
 }
