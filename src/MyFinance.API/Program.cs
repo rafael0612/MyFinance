@@ -32,14 +32,17 @@ builder.Services.Configure<EmailImapSettings>(
 // 3) Registrar repositorios (Infrastructure → Domain interfaces)
 builder.Services.AddScoped<ITransactionRepository, EFCoreTransactionRepository>();
 builder.Services.AddScoped<IBudgetRepository, EFCoreBudgetRepository>();
+builder.Services.AddScoped<IEmailNotificationParserService, EmailNotificationParserService>();
 builder.Services.AddScoped<ICsvExcelImportService, CsvExcelImportService>();
-builder.Services.AddScoped<IBulkTransactionImportUseCase, BulkTransactionImportUseCase>();
-builder.Services.AddScoped<IEmailTransactionImportUseCase, EmailTransactionImportUseCase>();
+builder.Services.AddScoped<IUserRepository, EFCoreUserRepository>();
 
 // 4) Registrar casos de uso / servicios (Application → UseCases interfaces)
 builder.Services.AddScoped<ITransactionUseCase, TransactionService>();
 builder.Services.AddScoped<IBudgetUseCase, BudgetService>();
-builder.Services.AddScoped<IEmailNotificationParserService, EmailNotificationParserService>();
+builder.Services.AddScoped<IBulkTransactionImportUseCase, BulkTransactionImportUseCase>();
+builder.Services.AddScoped<IEmailTransactionImportUseCase, EmailTransactionImportUseCase>();
+builder.Services.AddScoped<IFinancialIndicatorUseCase, FinancialIndicatorUseCase>();
+builder.Services.AddScoped<IUserRegisterUseCase, UserRegisterService>();
 
 
 // 5) Añadir controladores

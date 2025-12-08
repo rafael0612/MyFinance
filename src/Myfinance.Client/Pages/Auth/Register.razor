@@ -1,0 +1,42 @@
+﻿@page "/register"
+@inject HttpClient Http
+
+<h3>Registro de usuario</h3>
+<EditForm Model="Model" OnValidSubmit="HandleRegister">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Correo:</label>
+        <InputText @bind-Value="Model.Email" class="form-control" />
+    </div>
+    <div>
+        <label>Contraseña:</label>
+        <InputText @bind-Value="Model.Password" type="password" class="form-control" />
+    </div>
+    <div>
+        <label>Confirmar contraseña:</label>
+        <InputText @bind-Value="Model.ConfirmPassword" type="password" class="form-control" />
+    </div>
+    <button class="btn btn-primary" type="submit">Registrarse</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert @(Success ? "alert-success" : "alert-danger") mt-3">@Message</div>
+}
+
+@code {
+    UserRegisterDto Model = new();
+    string? Message;
+    bool Success;
+
+    async Task HandleRegister()
+    {
+        Message = null;
+        Success = false;
+        var response = await Http.PostAsJsonAsync("api/auth/register", Model);
+        var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        Message = result?["message"];
+        Success = response.IsSuccessStatusCode;
+    }
+}

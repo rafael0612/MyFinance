@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyFinance.Domain.Entities;
 using MyFinance.Domain.ValueObjects;
+using System;
+using System.Linq;
 
 namespace MyFinance.Infrastructure.Data
 {
@@ -11,6 +13,9 @@ namespace MyFinance.Infrastructure.Data
 
         public DbSet<Transaction> Transactions { get; set; } = null!;
         public DbSet<Budget> Budgets { get; set; } = null!;
+        public DbSet<Savings> Savings { get; set; } = null!;
+        public DbSet<InternalTransfer> InternalTransfers { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +40,29 @@ namespace MyFinance.Infrastructure.Data
                 entity.Property(t => t.Description)
                             .HasMaxLength(500)
                             .IsRequired(false); // Puede ser nulo
+
+                entity.Property(t => t.TipoIngreso)
+                      .HasMaxLength(100) // Limitar el tamaño del campo
+                      .IsRequired(); // Campo obligatorio
+
+                entity.Property(t => t.OrigenIngreso)
+                      .HasMaxLength(100) // Limitar el tamaño del campo
+                      .IsRequired(); // Campo obligatorio
+
+                entity.Property(t => t.ExpenseCategory)
+                      .HasMaxLength(100) // Limitar el tamaño del campo
+                      .IsRequired(false); // Puede ser nulo
+
+                entity.Property(t => t.NivelNecesidad)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(t => t.NaturalezaGasto)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(t => t.EsFijo)
+                      .IsRequired();
             });
 
             // Budget → table "Budgets"
@@ -53,7 +81,53 @@ namespace MyFinance.Infrastructure.Data
                       .IsRequired();
             });
 
+            // Savings → table "Savings"
+            modelBuilder.Entity<Savings>(entity =>
+            {
+                entity.HasKey(s => s.Id);
+                entity.Property(s => s.Name)
+                      .HasMaxLength(200)
+                      .IsRequired();
+                entity.Property(s => s.Balance)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+            });
+
+            // InternalTransfer → table "InternalTransfers"
+            modelBuilder.Entity<InternalTransfer>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+                entity.Property(t => t.FromAccountId)
+                      .IsRequired();
+                entity.Property(t => t.ToAccountId)
+                      .IsRequired();
+                entity.Property(t => t.Amount)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+                entity.Property(t => t.Date)
+                      .IsRequired();
+            });
+
+            // User → table "Users"
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(u => u.Id);
+                entity.Property(u => u.Email)
+                      .HasMaxLength(200)
+                      .IsRequired();
+                entity.Property(u => u.PasswordHash)
+                      .HasMaxLength(200)
+                      .IsRequired();
+                entity.HasIndex(u => u.Email)
+                      .IsUnique(); // Para evitar correos duplicados
+            });
+
             base.OnModelCreating(modelBuilder);
+        }
+
+        public IQueryable<Transaction> GetTransactionsByPeriod(DateTime period)
+        {
+            return Transactions.Where(t => t.Date.Year == period.Year && t.Date.Month == period.Month);
         }
     }
 }

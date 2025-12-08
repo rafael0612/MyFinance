@@ -39,5 +39,6 @@ namespace MyFinance.Domain.Interfaces
         /// returns>Lista de transacciones.</returns>
         /// <remarks>
         Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end);
+        Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period);
     }
 }

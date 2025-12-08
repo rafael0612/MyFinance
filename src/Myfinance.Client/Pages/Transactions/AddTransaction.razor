@@ -19,6 +19,49 @@
             <option value="Expense">Gasto</option>
         </InputSelect>
     </div>
+
+    @if (model.TransactionType == "Income")
+    {
+        <div class="mb-3">
+            <label>Tipo de Ingreso</label>
+            <InputSelect @bind-Value="model.TipoIngreso" class="form-control">
+                <option value="Activo">Activo</option>
+                <option value="Pasivo">Pasivo</option>
+                <option value="Extraordinario">Extraordinario</option>
+                <option value="Deuda">Deuda</option>
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label>Origen del Ingreso</label>
+            <InputText @bind-Value="model.OrigenIngreso" class="form-control" placeholder="Ejemplo: Sueldo, CTS, Préstamo" />
+        </div>
+    }
+    else if (model.TransactionType == "Expense")
+    {
+        <div class="mb-3">
+            <label>Categoría del Gasto</label>
+            <InputText @bind-Value="model.ExpenseCategory" class="form-control" placeholder="Ejemplo: Vivienda, Transporte" />
+        </div>
+        <div class="mb-3">
+            <label>Es Fijo</label>
+            <InputCheckbox @bind-Value="model.EsFijo" />
+        </div>
+        <div class="mb-3">
+            <label>Naturaleza del Gasto</label>
+            <InputSelect @bind-Value="model.NaturalezaGasto" class="form-control">
+                <option value="Consumo">Consumo</option>
+                <option value="Financiero">Financiero</option>
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label>Nivel de Necesidad</label>
+            <InputSelect @bind-Value="model.NivelNecesidad" class="form-control">
+                <option value="Esencial">Esencial</option>
+                <option value="NoEsencial">No Esencial</option>
+            </InputSelect>
+        </div>
+    }
+
     <div class="mb-3">
         <label>Monto</label>
         <InputNumber @bind-Value="model.Amount" class="form-control" />
@@ -38,14 +81,22 @@
         Id = Guid.Empty, 
         Date = DateTime.Today, 
         TransactionType = "Income", 
+        TipoIngreso = "Activo", // Valor predeterminado
+        OrigenIngreso = string.Empty, // Campo vacío por defecto
         Amount = 0,
-        Description = string.Empty
+        Description = string.Empty,
+        ExpenseCategory = string.Empty, // Campo vacío por defecto
+        EsFijo = false,
+        NaturalezaGasto = "Consumo",
+        NivelNecesidad = "Esencial"
     };
+
     async Task HandleValidSubmit()
     {
         await Http.PostAsJsonAsync("api/transactions", model);
         Nav.NavigateTo("/transactions");
     }
+
     private void GoBack()
     {
         Nav.NavigateTo("/transactions");

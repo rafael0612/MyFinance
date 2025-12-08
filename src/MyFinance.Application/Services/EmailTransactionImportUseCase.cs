@@ -23,7 +23,14 @@ namespace MyFinance.Application.Services
             foreach (var dto in emails)
             {
                 var transactionType = dto.Amount < 0 ? TransactionType.Expense : TransactionType.Income;
-                var entity = new DomainEntity(dto.Date, transactionType, dto.Amount, dto.Description);
+                var entity = new DomainEntity(
+                    dto.Date,
+                    transactionType,
+                    dto.Amount,
+                    "Activo", // Valor predeterminado para TipoIngreso
+                    "Importación por correo", // Valor predeterminado para OrigenIngreso
+                    dto.Description
+                );
                 await _transactionRepo.AddAsync(entity);
                 emailsProcessed.Add(dto);
             }
