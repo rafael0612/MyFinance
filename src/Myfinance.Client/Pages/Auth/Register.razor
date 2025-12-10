@@ -1,42 +1,138 @@
 ﻿@page "/register"
+@layout EmptyLayout
 @inject HttpClient Http
+@inject NavigationManager Nav
 
-<h3>Registro de usuario</h3>
-<EditForm Model="Model" OnValidSubmit="HandleRegister">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div>
-        <label>Correo:</label>
-        <InputText @bind-Value="Model.Email" class="form-control" />
-    </div>
-    <div>
-        <label>Contraseña:</label>
-        <InputText @bind-Value="Model.Password" type="password" class="form-control" />
-    </div>
-    <div>
-        <label>Confirmar contraseña:</label>
-        <InputText @bind-Value="Model.ConfirmPassword" type="password" class="form-control" />
-    </div>
-    <button class="btn btn-primary" type="submit">Registrarse</button>
-</EditForm>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-side auth-side--left">
+            <div class="brand">
+                <div class="brand-logo">MF</div>
+                <div class="brand-text">
+                    <h2>MyFinance</h2>
+                    <p>Crea tu cuenta y organiza tus finanzas.</p>
+                </div>
+            </div>
 
-@if (!string.IsNullOrEmpty(Message))
-{
-    <div class="alert @(Success ? "alert-success" : "alert-danger") mt-3">@Message</div>
-}
+            <div class="auth-highlights">
+                <h3>Empieza a tomar el control</h3>
+                <ul>
+                    <li>Registra tus ingresos y gastos desde cualquier dispositivo.</li>
+                    <li>Clasifica tus movimientos por categorías y medios de pago.</li>
+                    <li>Obtén indicadores que te ayuden a decidir mejor.</li>
+                </ul>
+            </div>
+
+            <div class="auth-footer-note">
+                <small>Al registrarte aceptas que tus datos se tratarán de forma segura y responsable.</small>
+            </div>
+        </div>
+
+        <div class="auth-side auth-side--right">
+            <div class="auth-header">
+                <h1>Crear una cuenta</h1>
+                <p>Completa los datos para registrarte en MyFinance.</p>
+            </div>
+
+            <EditForm Model="Model" OnValidSubmit="HandleRegister">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="validation-summary" />
+
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <InputText id="email"
+                               @bind-Value="Model.Email"
+                               class="form-control auth-input"
+                               placeholder="tucorreo@ejemplo.com" />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <InputText id="password"
+                               @bind-Value="Model.Password"
+                               type="password"
+                               class="form-control auth-input"
+                               placeholder="Mínimo 8 caracteres" />
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar contraseña</label>
+                    <InputText id="confirmPassword"
+                               @bind-Value="Model.ConfirmPassword"
+                               type="password"
+                               class="form-control auth-input"
+                               placeholder="Repite tu contraseña" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <div class="alert @(Success ? "alert-success" : "alert-danger") mt-2">
+                        @Message
+                    </div>
+                }
+
+                <button class="btn-primary auth-button"
+                        type="submit"
+                        disabled="@IsBusy">
+                    @if (IsBusy)
+                    {
+                        <span class="loader"></span>
+                        <span>Creando cuenta...</span>
+                    }
+                    else
+                    {
+                        <span>Registrarse</span>
+                    }
+                </button>
+            </EditForm>
+
+            <div class="auth-register-hint">
+                <span>¿Ya tienes una cuenta?</span>
+                <a href="/login">Iniciar sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     UserRegisterDto Model = new();
     string? Message;
     bool Success;
+    bool IsBusy;
 
     async Task HandleRegister()
     {
         Message = null;
         Success = false;
-        var response = await Http.PostAsJsonAsync("api/auth/register", Model);
-        var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-        Message = result?["message"];
-        Success = response.IsSuccessStatusCode;
+        IsBusy = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/register", Model);
+            var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+
+            if (result != null && result.TryGetValue("message", out var msg))
+            {
+                Message = result?["message"];
+            }
+            else
+            {
+                Message = response.IsSuccessStatusCode
+                    ? "Registro completado correctamente."
+                    : "No se pudo completar el registro.";
+            }
+
+            Success = response.IsSuccessStatusCode;
+            // redirigir automáticamente al login cuando se registre bien
+            if (Success)
+            {
+                // Esperar 1.5s para que vea el mensaje
+                await Task.Delay(1500);
+                Nav.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        { Message = $"Ocurrió un error inesperado: {ex.Message}"; }
+        finally
+        { IsBusy = false; }
     }
 }

@@ -1,133 +1,162 @@
 @page "/"
+@inject AuthenticationStateProvider AuthProvider
+@inject AuthService AuthService
+@inject NavigationManager Nav
 @inject HttpClient Http
 
-<h3>Dashboard Financiero</h3>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Elevation="2" Class="p-4 mb-4">
+        <MudText Typo="Typo.h4" Class="mb-2">Bienvenido, @userFullName (@userEmail)</MudText>
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+            Tu resumen financiero del mes y tus indicadores clave.
+        </MudText>
+    </MudPaper>
+    <MudPaper Elevation="2" Class="p-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">Movimiento Financiero Mensual</MudText>
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudDatePicker Label="Desde" @bind-Date="summaryStartDate" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-items-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadTransactionsAsync">
+                    Filtrar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Resumen Mensual</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (summary is null)
+                    {
+                        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                        <MudText>Cargando resumen mensual...</MudText>
+                    }
+                    else
+                    {
+                        <table class="mud-table">
+                            <tr>
+                                <td><MudIcon Icon="mdi-cash-plus" Color="Color.Success" /> Ingresos</td>
+                                <td>@summary.Income.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td><MudIcon Icon="mdi-cash-minus" Color="Color.Error" /> Gastos</td>
+                                <td>@summary.Expense.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td><MudIcon Icon="mdi-bank" Color="Color.Info" /> Saldo</td>
+                                <td>
+                                    <MudText Color="@(summary.Balance >= 0 ? Color.Success : Color.Error)" Class="fw-bold">
+                                        @summary.Balance.ToString("C")
+                                    </MudText>
+                                </td>
+                            </tr>
+                        </table>
+                        @if (summary.Balance < 0)
+                        {
+                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mt-2">
+                                ¡Atención! El saldo es negativo.
+                            </MudAlert>
+                        }
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Presupuesto vs Real</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (budget is null)
+                    {
+                        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                        <MudText>Cargando presupuesto...</MudText>
+                    }
+                    else
+                    {
+                        <table class="mud-table">
+                            <tr>
+                                <td><MudIcon Icon="mdi-wallet" Color="Color.Primary" /> Presupuesto</td>
+                                <td>@budget.Amount.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td><MudIcon Icon="mdi-cash-minus" Color="Color.Error" /> Gastos Reales</td>
+                                <td>@summary?.Expense.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td><MudIcon Icon="mdi-chart-bar" Color="Color.Info" /> Balance</td>
+                                <td>
+                                    <MudText Color="@(ExpenseVariance >= 0 ? Color.Success : Color.Error)" Class="fw-bold">
+                                        @ExpenseVariance.ToString("C")
+                                    </MudText>
+                                </td>
+                            </tr>
+                        </table>
+                        @if (CurrentAlertThreshold < budget.AlertThreshold)
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mt-2">
+                                ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold.ToString("F2")%.
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="mt-2">
+                                Estás dentro del presupuesto.
+                            </MudAlert>
+                        }
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 
-<!-- FILTROS -->
-<div class="row g-3 mb-4">
-    <div class="col-md-2">
-        <label class="form-label">Desde</label>
-        <InputDate @bind-Value="filter" class="form-control" />
-    </div>
-    <div class="col-md-1 d-flex align-items-end">
-        <button class="btn btn-primary w-100" @onclick="LoadTransactionsAsync">
-            Filtrar
-        </button>
-    </div>
-</div>
-
-@if (summary is null)
-{
-    <p><em>Cargando resumen mensual...</em></p>
-}
-else
-{
-    <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <div class="card p-3">
-                <h5>@($"Resumen {summary.Month}/{summary.Year}")</h5>
-                <ul class="list-unstyled">
-                    <li><strong>Ingresos:</strong> @summary.Income.ToString("C")</li>
-                    <li><strong>Gastos:</strong> @summary.Expense.ToString("C")</li>
-                    <li>
-                        <strong>Saldo:</strong>
-                        <span class="@BalanceClass">@summary.Balance.ToString("C")</span>
-                    </li>
-                </ul>
-                @if (summary.Balance < 0)
-                {
-                    <div class="alert alert-danger">
-                        ¡Atención! El saldo es negativo.
-                    </div>
-                }
-            </div>
-        </div>
-        @if (budget is null)
+    <MudPaper Elevation="2" Class="p-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">Gastos diarios</MudText>
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudDatePicker Label="Desde" @bind-Date="expenseStartDate" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudDatePicker Label="Hasta" @bind-Date="expenseEndDate" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-items-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadDailyTransactionsAsync">
+                    Filtrar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        @if (dailyTransactions == null)
         {
-            <p><em>Cargando presupuesto vs Gastos Reales del Mes...</em></p>
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Cargando gastos diarios…</MudText>
         }
         else
         {
-            <div class="col-md-6 mb-3">
-                <div class="card p-3">
-                    <h5>@($"Presupuesto vs Real del {summary.Month}/{summary.Year}")</h5>
-                    <ul class="list-unstyled">
-                        <li>
-                            <strong>Presupuesto de Gastos:</strong>
-                            @budget.Amount.ToString("C")
-                        </li>
-                        <li>
-                            <strong>Gastos Reales:</strong>
-                            @summary.Expense.ToString("C")
-                        </li>
-                        <li>
-                            <strong>Balance:</strong>
-                            <span class="@ExpenseVarianceClass">
-                                @ExpenseVariance.ToString("C")
-                            </span>
-                        </li>
-                    </ul>
-                    @if (CurrentAlertThreshold < budget.AlertThreshold)
-                    {
-                        <div class="alert alert-warning">
-                            ¡Atención! Has superado el umbral de alerta del @budget.AlertThreshold%.
-                        </div>
-                    }
-                    else if (CurrentAlertThreshold >= budget.AlertThreshold)
-                    {
-                        <div class="alert alert-success">
-                            Estás dentro del presupuesto.
-                        </div>
-                    }
-                </div>
-            </div>
+            <MudChart 
+                ChartType="ChartType.Bar" 
+                ChartSeries="@barSeries" 
+                XAxisLabels="@barLabels" 
+                Width="100%" 
+                Height="350px"
+                AxisChartOptions="_axisChartOptions">
+            </MudChart>
+            <MudChart 
+                ChartType="ChartType.Line" 
+                ChartSeries="@barSeries" 
+                XAxisLabels="@barLabels" 
+                Width="100%" 
+                Height="350px"
+                ChartOptions="@_options" 
+                AxisChartOptions="_axisChartOptions">
+            </MudChart>
         }
-    </div>
-}
-
-<!-- NUEVO BLOQUE: GASTOS DIARIOS -->
-<h4 class="mt-5">Gastos diarios</h4>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-2">
-        <label class="form-label">Desde</label>
-        <InputDate @bind-Value="expenseStartDate" class="form-control" />
-    </div>
-    <div class="col-md-2">
-        <label class="form-label">Hasta</label>
-        <InputDate @bind-Value="expenseEndDate" class="form-control" />
-    </div>
-    <div class="col-md-1 d-flex align-items-end">
-        <button class="btn btn-primary w-100" @onclick="LoadDailyTransactionsAsync">
-            Filtrar
-        </button>
-    </div>
-</div>
-
-@if (dailyTransactions == null)
-{
-    <p><em>Cargando gastos diarios…</em></p>
-}
-else
-{
-    <MudChart 
-        ChartType="ChartType.Bar" 
-        ChartSeries="@barSeries" 
-        XAxisLabels="@barLabels" 
-        Width="@_width" 
-        Height="@_height"
-        AxisChartOptions="_axisChartOptions">
-    </MudChart>
-    <MudChart 
-        ChartType="ChartType.Line" 
-        ChartSeries="@barSeries" 
-        XAxisLabels="@barLabels" 
-        Width="@_width" 
-        Height="@_height"
-        ChartOptions="@_options" 
-        AxisChartOptions="_axisChartOptions">
-    </MudChart>
-}
+    </MudPaper>
+</MudContainer>
 
 @code {
     // Estado principal
@@ -135,28 +164,35 @@ else
     private BudgetDto? budget;
     private decimal ExpenseVariance;
     private decimal CurrentAlertThreshold;
-    private string BalanceClass = string.Empty;
-    private string ExpenseVarianceClass = string.Empty;
-    private DateTime filter = DateTime.Now;
+    private string? userEmail;
+    private string? userFullName;
+    private DateTime? summaryStartDate;
+
 
     // Estado del gráfico de gastos diarios
     private List<DailyTransactionViewDto>? dailyTransactions;
-    private DateTime expenseStartDate;
-    private DateTime expenseEndDate;
+    private DateTime? expenseStartDate;
+    private DateTime? expenseEndDate;
     private string[] barLabels = Array.Empty<string>();
     private List<ChartSeries>? barSeries;
-    private string _width = "100%";
-    private string _height = "350px";
     private ChartOptions _options = new ChartOptions();
     private AxisChartOptions _axisChartOptions = new AxisChartOptions();
 
     protected override async Task OnInitializedAsync()
     {
-        filter = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        userEmail = await AuthService.GetEmailAsync();
+        userFullName = await AuthService.GetFullNameAsync();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+        var now = DateTime.Now;
+        summaryStartDate = new DateTime(now.Year, now.Month, 1);
+        expenseStartDate = summaryStartDate;
+        expenseEndDate = expenseStartDate.Value.AddMonths(1).AddDays(-1);
         await LoadTransactionsAsync();
-
-        expenseStartDate = filter;
-        expenseEndDate = filter.AddMonths(1).AddDays(-1);
         await LoadDailyTransactionsAsync();
     }
 
@@ -164,17 +200,15 @@ else
     {
         try
         {
-            var fm = new DateTime(filter.Year, filter.Month, 1);
+            var fm = new DateTime(summaryStartDate!.Value.Year, summaryStartDate!.Value.Month, 1);
             summary = await Http.GetFromJsonAsync<MonthlySummaryDto>(
-            requestUri: $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
+                $"api/transactions/summary/{fm:yyyy}/{fm:MM}");
             budget = await Http.GetFromJsonAsync<BudgetDto>(
-            $"api/budget/{fm:yyyy}/{fm:MM}");
+                $"api/budget/{fm:yyyy}/{fm:MM}");
             if (summary is not null && budget is not null)
             {
                 ExpenseVariance = budget.Amount - summary.Expense;
-                CurrentAlertThreshold = ExpenseVariance / 100; // % del presupuesto
-                BalanceStyle(summary.Balance);
-                ExpenseVarianceStyle(CurrentAlertThreshold);
+                CurrentAlertThreshold = ExpenseVariance / 100;
             }
         }
         catch (Exception ex)
@@ -185,47 +219,33 @@ else
         }
     }
 
-    private void BalanceStyle(decimal bal) =>
-    BalanceClass = bal >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
-
-    private void ExpenseVarianceStyle(decimal var) =>
-    ExpenseVarianceClass = var >= 0 ? "text-success fw-bold" : "text-danger fw-bold";
-
     private async Task LoadDailyTransactionsAsync()
     {
         try
         {
             var url = $"api/transactions/daily-expenses" +
-            $"?start={expenseStartDate:yyyy-MM-dd}" +
-            $"&end={expenseEndDate:yyyy-MM-dd}";
-            // Lee directamente el array que devuelve el servidor
+                $"?start={expenseStartDate:yyyy-MM-dd}" +
+                $"&end={expenseEndDate:yyyy-MM-dd}";
             dailyTransactions = await Http.GetFromJsonAsync<List<DailyTransactionViewDto>>(url)
-            ?? new List<DailyTransactionViewDto>();
+                ?? new List<DailyTransactionViewDto>();
             if (dailyTransactions?.Any() == true)
             {
-                // Etiquetas X: día del mes
                 barLabels = dailyTransactions
-                                .Select(d => d.Date.ToString("dd"))
-                                .ToArray();
-                // 3) Series: objeto con el nombre y los datos
-                // Construye las dos series
+                    .Select(d => d.Date.ToString("dd"))
+                    .ToArray();
                 barSeries = new List<ChartSeries>
-                                {
-                                    new ChartSeries
-                                    {
-                                        Name = "Gastos",
-                                        Data = dailyTransactions
-                                                    .Select(d => (double)d.ExpenseAmount)
-                                                    .ToArray()
-                                    },
-                                    new ChartSeries
-                                    {
-                                        Name = "Ingresos",
-                                        Data = dailyTransactions
-                                                    .Select(d => (double)d.IncomeAmount)
-                                                    .ToArray()
-                                    }
-                                };
+                {
+                    new ChartSeries
+                    {
+                        Name = "Gastos",
+                        Data = dailyTransactions.Select(d => (double)d.ExpenseAmount).ToArray()
+                    },
+                    new ChartSeries
+                    {
+                        Name = "Ingresos",
+                        Data = dailyTransactions.Select(d => (double)d.IncomeAmount).ToArray()
+                    }
+                };
             }
             StateHasChanged();
         }
@@ -235,18 +255,10 @@ else
             dailyTransactions = new List<DailyTransactionViewDto>();
             barLabels = Array.Empty<string>();
             barSeries = new List<ChartSeries>
-                            {
-                                new ChartSeries
-                                    {
-                                        Name = "Gastos",
-                                        Data = Array.Empty<double>()
-                                    },
-                                new ChartSeries
-                                    {
-                                        Name = "Ingresos",
-                                        Data = Array.Empty<double>()
-                                    },
-                            };
+            {
+                new ChartSeries { Name = "Gastos", Data = Array.Empty<double>() },
+                new ChartSeries { Name = "Ingresos", Data = Array.Empty<double>() }
+            };
         }
     }
 }

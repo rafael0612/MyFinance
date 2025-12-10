@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyFinance.Application.UseCases;
 
 namespace MyApp.Namespace
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EmailImportController : ControllerBase

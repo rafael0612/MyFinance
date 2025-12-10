@@ -1,4 +1,12 @@
 ﻿@inherits LayoutComponentBase
+@inject MyFinance.Client.Services.AuthService AuthService
+
+@* Providers de MudBlazor: todos autocerrados *@
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,7 +14,12 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <span class="me-3">Hola, @userFullName</span>
+                    <a href="/logout">Cerrar sesión</a>
+                </Authorized>
+            </AuthorizeView>
         </div>
 
         <article class="content px-4">
@@ -14,3 +27,12 @@
         </article>
     </main>
 </div>
+
+@code {
+    private string? userFullName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userFullName = await AuthService.GetFullNameAsync();
+    }
+}

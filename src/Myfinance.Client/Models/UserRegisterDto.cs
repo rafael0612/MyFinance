@@ -1,5 +1,4 @@
-﻿using MudBlazor.Charts;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MyFinance.Client.Models
 {

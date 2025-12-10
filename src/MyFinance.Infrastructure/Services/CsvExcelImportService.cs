@@ -72,14 +72,14 @@ namespace MyFinance.Infrastructure.Services
             decimal amount = ParseDecimal(columns[3]);
             string description = string.IsNullOrWhiteSpace(columns[4].ToString()) ? "Importado desde Yape." : columns[4].Trim();
             DateTime date = ParseDate(columns[5]);
-
+            var userId = Guid.NewGuid(); // Reemplazar con el Id del usuario actual si es necesario
             // Nuevos campos
             string tipoIngreso = "Activo"; // Valor predeterminado
             string origenIngreso = "Importación CSV"; // Valor predeterminado
 
             if (!string.IsNullOrWhiteSpace(transactionType) && amount > 0 && date != DateTime.MinValue)
             {
-                return new TransactionDto(Guid.Empty, date, transactionType, amount, tipoIngreso, origenIngreso, description);
+                return new TransactionDto(Guid.Empty,userId, date, transactionType, amount, tipoIngreso, origenIngreso, description);
             }
             return null;
         }
@@ -91,14 +91,14 @@ namespace MyFinance.Infrastructure.Services
             decimal amount = ParseDecimal(row.Cell(4).GetString());
             string description = string.IsNullOrWhiteSpace(row.Cell(5).GetString()) ? "Importado desde Yape." : row.Cell(5).GetString().Trim();
             DateTime date = ParseDate(row.Cell(6).GetString());
-
+            var userId = Guid.NewGuid(); // Reemplazar con el Id del usuario actual si es necesario
             // Nuevos campos
             string tipoIngreso = "Activo"; // Valor predeterminado
             string origenIngreso = "Importación XLSX"; // Valor predeterminado
 
             if (!string.IsNullOrWhiteSpace(transactionType) && amount > 0 && date != DateTime.MinValue)
             {
-                return new TransactionDto(Guid.Empty, date, transactionType, amount, tipoIngreso, origenIngreso, description);
+                return new TransactionDto(Guid.Empty, userId, date, transactionType, amount, tipoIngreso, origenIngreso, description);
             }
             return null;
         }

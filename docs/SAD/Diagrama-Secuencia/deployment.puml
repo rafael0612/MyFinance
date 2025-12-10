@@ -1,0 +1,33 @@
+@startuml Deployment
+
+title Diagrama de despliegue - Sistema de Finanzas Personales
+
+node "Usuario Final" as User {
+  node "Navegador Web\n(Chrome / Edge / etc.)" as Browser
+}
+
+node "Hosting Frontend\n(Static Web / CDN)" as FrontHost {
+  artifact "PersonalFinance.WebApp\n(Blazor WebAssembly)" as WebApp
+}
+
+node "Servidor API\n(ASP.NET Core .NET 9)" as ApiServer {
+  artifact "PersonalFinance.WebApi\nKestrel" as WebApi
+
+  node "Capa de Aplicación" as AppLayer
+  node "Capa de Infraestructura" as InfraLayer
+}
+
+node "Servidor BD" as DbServer {
+  database "SQL Server 2019\nPersonalFinanceDb" as SqlDb
+}
+
+' conexiones
+User --> Browser
+Browser --> WebApp : HTTP/HTTPS\n(descarga Blazor WASM)
+Browser --> WebApi : HTTPS\nJSON REST API
+
+WebApi --> AppLayer
+AppLayer --> InfraLayer
+InfraLayer --> SqlDb : ADO.NET / EF Core
+
+@enduml

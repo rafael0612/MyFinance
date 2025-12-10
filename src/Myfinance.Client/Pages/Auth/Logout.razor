@@ -1,0 +1,16 @@
+@page "/logout"
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        if (AuthProvider is MyFinance.Client.Auth.JwtAuthenticationStateProvider jwtProvider)
+        {
+            jwtProvider.NotifyUserLogout();
+        }
+        Nav.NavigateTo("/login", true);
+    }
+}

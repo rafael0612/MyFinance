@@ -12,18 +12,19 @@ namespace MyFinance.Client.Models
     public class TransactionDto
     {
         public Guid Id { get; set; }
+        public Guid UserId { get; set; } // NUEVO
         public DateTime Date { get; set; }
         public string TransactionType { get; set; } = "Income";
         public decimal Amount { get; set; }
         public string TipoIngreso { get; set; } = "Activo"; // Para ingresos
         public string OrigenIngreso { get; set; } = "Es Gasto"; // Para ingresos
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         // Nuevos campos para gastos
         public string ExpenseCategory { get; set; } = string.Empty;
         public bool EsFijo { get; set; } = false;
         public string NaturalezaGasto { get; set; } = "Consumo";
-        public string NivelNecesidad { get; set; } = "Esencial";
+        public string NivelNecesidad { get; set; } = "Esencial";        
 
         public TransactionDto() { }
 

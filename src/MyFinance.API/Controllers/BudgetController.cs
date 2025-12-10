@@ -1,10 +1,12 @@
 ﻿// MyFinance.API/Controllers/BudgetController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
+using MyFinance.Shared.DTOs;
 
 namespace MyFinance.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class BudgetController : ControllerBase
@@ -53,7 +55,7 @@ namespace MyFinance.API.Controllers
             if (!updated)
                 return NotFound("Presupuesto no encontrado.");
             return NoContent();
-        }        
+        }
         // DELETE api/budget/{id}
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)

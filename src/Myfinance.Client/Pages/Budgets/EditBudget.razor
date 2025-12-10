@@ -1,4 +1,5 @@
 @page "/budgets/edit/{Id:guid}"
+@inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -43,6 +44,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Verifica autenticación antes de cargar datos
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
         // 1) Obtener la transacción por id
         model = await Http.GetFromJsonAsync<BudgetDto>($"api/budget/{Id}");            
     }

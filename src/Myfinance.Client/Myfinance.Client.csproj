@@ -7,10 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Blazor WASM base -->
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.3" PrivateAssets="all" />
+    <!-- Utilidades Web, OK con 9.0.5 -->
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.5" />
+    <!-- UI -->
     <PackageReference Include="MudBlazor" Version="8.9.0" />
+    <!-- Almacenamiento local para token -->
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <!-- Autorización en Blazor -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.0" />
+    <!-- Si en el cliente parseas/validas el JWT, este está bien -->
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
+    <!-- HttpClient Factory -->
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>

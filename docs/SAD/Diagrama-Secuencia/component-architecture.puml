@@ -1,0 +1,161 @@
+@startuml Component_Architecture
+
+title Arquitectura de componentes - Sistema de Finanzas Personales
+
+skinparam componentStyle rectangle
+
+package "Cliente" {
+  [Blazor WebApp\n(PersonalFinance.WebApp)] as Blazor
+
+  component "AuthService\n(frontend)" as FE_Auth
+  component "TransactionService\n(frontend)" as FE_Trans
+  component "CategoryService\n(frontend)" as FE_Cat
+  component "PaymentMethodService\n(frontend)" as FE_Pay
+  component "SummaryService\n(frontend)" as FE_Sum
+  component "IncomeTypeService\n(frontend)" as FE_IncType
+  component "CustomAuthStateProvider\n(frontend)" as FE_AuthState
+
+  Blazor -down- FE_Auth
+  Blazor -down- FE_Trans
+  Blazor -down- FE_Cat
+  Blazor -down- FE_Pay
+  Blazor -down- FE_Sum
+  Blazor -down- FE_IncType
+  Blazor -down- FE_AuthState
+}
+
+package "Servidor API (.NET 9)" {
+  [WebApi\n(PersonalFinance.WebApi)] as WebApi
+
+  component "AuthController" as C_Auth
+  component "TransactionsController" as C_Trans
+  component "CategoriesController" as C_Cat
+  component "PaymentMethodsController" as C_Pay
+  component "SummaryController" as C_Sum
+  component "IncomeTypesController" as C_IncType
+
+  WebApi -down- C_Auth
+  WebApi -down- C_Trans
+  WebApi -down- C_Cat
+  WebApi -down- C_Pay
+  WebApi -down- C_Sum
+  WebApi -down- C_IncType
+}
+
+package "Capa de Aplicación\n(PersonalFinance.Application)" {
+  component "AuthService\n(backend)" as BE_Auth
+  component "CreateExpenseHandler" as BE_CreateExpense
+  component "CreateIncomeHandler" as BE_CreateIncome
+  component "GetTransactionsHandler" as BE_GetTrans
+  component "GetCategoriesHandler" as BE_GetCat
+  component "CreateCategoryHandler" as BE_CreateCat
+  component "UpdateCategoryHandler" as BE_UpdateCat
+  component "DeactivateCategoryHandler" as BE_DeactCat
+  component "GetPaymentMethodsHandler" as BE_GetPay
+  component "CreatePaymentMethodHandler" as BE_CreatePay
+  component "UpdatePaymentMethodHandler" as BE_UpdatePay
+  component "DeactivatePaymentMethodHandler" as BE_DeactPay
+  component "GetMonthlySummaryHandler" as BE_MonthlySummary
+  component "GetTopExpenseCategoriesHandler" as BE_TopCat
+  component "JwtTokenGenerator" as BE_Jwt
+}
+
+package "Capa de Infraestructura\n(PersonalFinance.Infrastructure)" {
+  component "PersonalFinanceDbContext" as DbContext
+  component "UserRepository" as Repo_User
+  component "TransactionRepository" as Repo_Trans
+  component "CategoryRepository" as Repo_Cat
+  component "PaymentMethodRepository" as Repo_Pay
+  component "IncomeTypeRepository" as Repo_IncType
+}
+
+package "Capa de Dominio\n(PersonalFinance.Domain)" {
+  component "User" as Ent_User
+  component "Transaction" as Ent_Trans
+  component "Category" as Ent_Cat
+  component "PaymentMethod" as Ent_Pay
+  component "IncomeType" as Ent_IncType
+  component "Enums\n(TransactionType,\nMovementType,\nNeedLevel,\nNature,\nIncomeKind)" as Ent_Enums
+}
+
+database "SQL Server 2019\n(PersonalFinanceDb)" as SQL
+
+' --- relaciones cliente-servidor ----
+FE_Auth --> C_Auth : HTTP\n/auth/*
+FE_Trans --> C_Trans : HTTP\n/transactions/*
+FE_Cat --> C_Cat : HTTP\n/categories/*
+FE_Pay --> C_Pay : HTTP\n/payment-methods/*
+FE_Sum --> C_Sum : HTTP\n/summary/*
+FE_IncType --> C_IncType : HTTP\n/income-types/*
+FE_AuthState --> C_Auth : usa JWT\n(Bearer)
+
+' --- controladores -> application handlers/services ----
+C_Auth --> BE_Auth
+C_Auth --> BE_Jwt
+
+C_Trans --> BE_CreateExpense
+C_Trans --> BE_CreateIncome
+C_Trans --> BE_GetTrans
+
+C_Cat --> BE_GetCat
+C_Cat --> BE_CreateCat
+C_Cat --> BE_UpdateCat
+C_Cat --> BE_DeactCat
+
+C_Pay --> BE_GetPay
+C_Pay --> BE_CreatePay
+C_Pay --> BE_UpdatePay
+C_Pay --> BE_DeactPay
+
+C_Sum --> BE_MonthlySummary
+C_Sum --> BE_TopCat
+
+C_IncType --> Repo_IncType
+
+' --- application -> infra repositories ----
+BE_Auth --> Repo_User
+BE_CreateExpense --> Repo_Trans
+BE_CreateExpense --> Repo_Cat
+BE_CreateExpense --> Repo_Pay
+BE_CreateIncome --> Repo_Trans
+BE_CreateIncome --> Repo_IncType
+BE_GetTrans --> Repo_Trans
+
+BE_GetCat --> Repo_Cat
+BE_CreateCat --> Repo_Cat
+BE_UpdateCat --> Repo_Cat
+BE_DeactCat --> Repo_Cat
+
+BE_GetPay --> Repo_Pay
+BE_CreatePay --> Repo_Pay
+BE_UpdatePay --> Repo_Pay
+BE_DeactPay --> Repo_Pay
+
+BE_MonthlySummary --> Repo_Trans
+BE_MonthlySummary --> Repo_Cat
+
+BE_TopCat --> Repo_Trans
+BE_TopCat --> Repo_Cat
+
+' --- infra -> dominio + bd ----
+Repo_User --> DbContext
+Repo_Trans --> DbContext
+Repo_Cat --> DbContext
+Repo_Pay --> DbContext
+Repo_IncType --> DbContext
+
+DbContext --> SQL
+
+DbContext ..> Ent_User
+DbContext ..> Ent_Trans
+DbContext ..> Ent_Cat
+DbContext ..> Ent_Pay
+DbContext ..> Ent_IncType
+
+Ent_User ..> Ent_Trans
+Ent_Cat ..> Ent_Trans
+Ent_Pay ..> Ent_Trans
+Ent_IncType ..> Ent_Trans
+Ent_Trans ..> Ent_Enums
+
+@enduml

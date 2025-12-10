@@ -1,11 +1,11 @@
-﻿// MyFinance.API/Controllers/TransactionsController.cs
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-//using MyFinance.Application.DTOs;
-using MyFinance.Shared.DTOs;
 using MyFinance.Application.UseCases;
+using MyFinance.Shared.DTOs;
 
 namespace MyFinance.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class TransactionsController : ControllerBase
@@ -37,7 +37,9 @@ namespace MyFinance.API.Controllers
             if (dto == null) return NotFound();
             return Ok(dto);
         }
-        // POST api/transactions
+        // Reemplaza la asignación directa de dto.UserId por la creación de un nuevo TransactionDto con el UserId asignado.
+        // Sustituye este bloque en el método Create:
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] TransactionDto dto)
         {
@@ -45,8 +47,13 @@ namespace MyFinance.API.Controllers
             {
                 return BadRequest("Los campos TipoIngreso y OrigenIngreso son obligatorios.");
             }
+            // Si usas JWT, puedes obtener el userId así:
+            var userIdClaim = User.FindFirst("userId")?.Value;
+            TransactionDto dtoWithUser = dto;
+            if (Guid.TryParse(userIdClaim, out var userId))
+                dtoWithUser = dto with { UserId = userId };
 
-            await _transactionUseCase.AddTransactionAsync(dto);
+            await _transactionUseCase.AddTransactionAsync(dtoWithUser);
             // devolvemos 201 Created sin ubicación específica
             return CreatedAtAction(nameof(GetAll), null);
         }

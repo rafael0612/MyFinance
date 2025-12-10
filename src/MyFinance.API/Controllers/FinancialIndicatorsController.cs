@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyFinance.Application.UseCases;
 using MyFinance.Shared.DTOs;
-using System;
-using System.Threading.Tasks;
 
 namespace MyFinance.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class FinancialIndicatorsController : ControllerBase

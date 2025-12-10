@@ -1,6 +1,8 @@
 ﻿@page "/sincronizar-emails"
 @using MyFinance.Shared.DTOs
+@inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
+@inject NavigationManager Nav
 
 <h3>Sincronizar transacciones desde correo</h3>
 
@@ -56,6 +58,17 @@
     private int id = 1;
 
     List<ParsedEmailTransactionDto> Transacciones = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+    }
+
     async Task SincronizarCorreos()
     {
         Mensaje = string.Empty;
