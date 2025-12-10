@@ -94,13 +94,13 @@ namespace MyFinance.Application.Services
         {
             await _repo.DeleteAsync(id);
         }
-        public async Task<MonthlySummaryDto> GetMonthlySummaryAsync(int year, int month)
+        public async Task<MonthlySummaryDto> GetMonthlySummaryAsync(int year, int month, Guid userId)
         {
-            var items = await _repo.GetByMonthAsync(year, month);
-            foreach (var item in items)
-            {
-                Console.WriteLine($"Transaction: {item.Id}, Date: {item.Date}, Category: {item.TransactionType}, Amount: {item.Amount}");
-            }
+            var items = await _repo.GetByMonthAsync(year, month, userId);
+            //foreach (var item in items)
+            //{
+            //    Console.WriteLine($"Transaction: {item.Id}, Date: {item.Date}, Category: {item.TransactionType}, Amount: {item.Amount}");
+            //}
 
             var income = items.Where(t => t.TransactionType == TransactionType.Income).Sum(t => t.Amount);
 
@@ -127,13 +127,14 @@ namespace MyFinance.Application.Services
               string? category,
               string? transactionType,
               string sortField,
-              bool sortDesc
+              bool sortDesc,
+              Guid userId
         )
         {
             // 1) Obtiene todas (o podrías tener un método de repo que acepte filtros)
             // Llamas al nuevo método del repo
             var items = await _repo.GetFilteredAsync(
-               startDate, endDate, category, transactionType, sortField, sortDesc
+               startDate, endDate, category, transactionType, sortField, sortDesc, userId
             );
             // Proyectas a DTO
             return items.Select(t => new TransactionDto(
@@ -158,10 +159,10 @@ namespace MyFinance.Application.Services
         ///  <param name="end">Fecha de fin.</param>
         /// <returns>Lista de transacciones.</returns>
         /// <remarks>
-        public async Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end)
+        public async Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end, Guid userId)
         {
             // 1) Trae todas las transacciones en rango
-            var txs = await _repo.GetByDateRangeAsync(start, end);
+            var txs = await _repo.GetByDateRangeAsync(start, end, userId);
 
             // 2) Filtra sólo Expense y agrupa por día
             var exp = txs

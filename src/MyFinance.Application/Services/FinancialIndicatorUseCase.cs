@@ -15,9 +15,9 @@ namespace MyFinance.Application.Services
             _transactionRepository = transactionRepository;
         }
 
-        public async Task<FinancialSummaryDto> CalculateIndicators(DateTime period)
+        public async Task<FinancialSummaryDto> CalculateIndicators(DateTime period, Guid userId)
         {
-            var transactions = await _transactionRepository.GetTransactionsByPeriod(period);
+            var transactions = await _transactionRepository.GetTransactionsByPeriod(period, userId);
 
             var totalIncome = transactions.Where(t => t.TransactionType == TransactionType.Income).Sum(t => t.Amount);
             var totalExpenses = transactions.Where(t => t.TransactionType == TransactionType.Expense).Sum(t => t.Amount);

@@ -25,8 +25,9 @@ namespace MyFinance.API.Controllers
             [FromQuery] string sortField = "Date",
             [FromQuery] bool sortDesc = false)
         {
-            var list = await _transactionUseCase
-            .GetTransactionsAsync(startDate, endDate, transactionType, description, sortField, sortDesc);
+            var userIdClaim = User.FindFirst("userId")?.Value;
+            Guid.TryParse(userIdClaim, out var userId);
+            var list = await _transactionUseCase.GetTransactionsAsync(startDate, endDate, transactionType, description, sortField, sortDesc, userId);
             return Ok(list);
         }
         // GET api/transactions/{id}
@@ -85,15 +86,19 @@ namespace MyFinance.API.Controllers
         [HttpGet("summary/{year:int}/{month:int}")]
         public async Task<IActionResult> GetSummary(int year, int month)
         {
-            Console.WriteLine($"Obteniendo resumen para {year}-{month}");
-            var summary = await _transactionUseCase.GetMonthlySummaryAsync(year, month);
+            //Console.WriteLine($"Obteniendo resumen para {year}-{month}");
+            var userIdClaim = User.FindFirst("userId")?.Value;
+            Guid.TryParse(userIdClaim, out var userId);
+            var summary = await _transactionUseCase.GetMonthlySummaryAsync(year, month, userId);
             return Ok(summary);
         }
         [HttpGet("daily-expenses")]
         public async Task<IActionResult> GetDailyExpenses([FromQuery] DateTime start, [FromQuery] DateTime end)
         {
+            var userIdClaim = User.FindFirst("userId")?.Value;
+            Guid.TryParse(userIdClaim, out var userId);
             if (end < start) return BadRequest("El rango es inválido.");
-            var data = await _transactionUseCase.GetDailyExpensesAsync(start, end);
+            var data = await _transactionUseCase.GetDailyExpensesAsync(start, end, userId);
             return Ok(data);
         }
     }

@@ -34,6 +34,8 @@ namespace MyFinance.API.Controllers
         [HttpGet("{year:int}/{month:int}")]
         public async Task<IActionResult> GetByMonth(int year, int month)
         {
+            //var userIdClaim = User.FindFirst("userId")?.Value;
+            //Guid.TryParse(userIdClaim, out var userId);
             var budget = await _budgetUseCase.GetBudgetByMonthAsync(year, month);
             if (budget == null) return NotFound("Presupuesto no encontrado para el mes y año especificados.");
             return Ok(budget);

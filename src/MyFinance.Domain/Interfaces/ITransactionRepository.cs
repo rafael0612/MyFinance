@@ -19,7 +19,7 @@ namespace MyFinance.Domain.Interfaces
         /// <sumary>
         /// Recupera transacciones filtradas por año y mes.
         /// </sumary>
-        Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month);
+        Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month, Guid userId);
         /// <summary>
         /// Recupera transacciones filtradas por fecha, categoráa y descripción.
         /// </summary>
@@ -29,7 +29,8 @@ namespace MyFinance.Domain.Interfaces
             string? transactionType,
             string? description,
             string sortField,
-            bool sortDesc
+            bool sortDesc,
+            Guid userId
         );
         /// <summary>
         /// Recupera transacciones por rango de fechas.
@@ -38,7 +39,7 @@ namespace MyFinance.Domain.Interfaces
         /// <param name="end">Fecha de fin.</param>
         /// returns>Lista de transacciones.</returns>
         /// <remarks>
-        Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end);
-        Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period);
+        Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end, Guid userId);
+        Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period, Guid userId);
     }
 }
