@@ -10,15 +10,16 @@ namespace MyFinance.Application.UseCases
         Task AddTransactionAsync(TransactionDto dto);
         Task<bool> UpdateTransactionAsync(TransactionDto dto);
         Task DeleteTransactionAsync(Guid id);
-        Task<MonthlySummaryDto> GetMonthlySummaryAsync(int year, int month);
+        Task<MonthlySummaryDto> GetMonthlySummaryAsync(int year, int month, Guid userId);
         Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
             DateTime? startDate,
             DateTime? endDate,
             string? transactionType,
             string? description,
             string sortField,
-            bool sortDesc
+            bool sortDesc,
+            Guid userId
         );
-        Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end);
+        Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end, Guid userId);
     }
 }

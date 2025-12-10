@@ -22,8 +22,11 @@ namespace MyFinance.API.Controllers
         {
             try
             {
+                var userIdClaim = User.FindFirst("userId")?.Value;
+                Guid.TryParse(userIdClaim, out var userId);
+
                 var period = new DateTime(year, month, 1);
-                var financialSummary = await _financialIndicatorService.CalculateIndicators(period);
+                var financialSummary = await _financialIndicatorService.CalculateIndicators(period, userId);
 
                 var dto = new FinancialIndicatorsDto
                 {

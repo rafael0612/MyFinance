@@ -43,9 +43,9 @@ namespace MyFinance.Infrastructure.Repositories
             => await _context.Transactions
                                         .AsNoTracking()
                                         .FirstOrDefaultAsync(t => t.Id == transactionId);
-        public async Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month)
+        public async Task<IEnumerable<Transaction>> GetByMonthAsync(int year, int month, Guid userId)
             => await _context.Transactions
-                                        .Where(t => t.Date.Year == year && t.Date.Month == month)
+                                        .Where(t => t.Date.Year == year && t.Date.Month == month && t.UserId == userId)
                                         .AsNoTracking()
                                         .ToListAsync();
         public async Task<IEnumerable<Transaction>> GetFilteredAsync(
@@ -54,7 +54,8 @@ namespace MyFinance.Infrastructure.Repositories
             string? transactionType,
             string? description,
             string sortField,
-            bool sortDesc)
+            bool sortDesc, 
+            Guid userId)
         {
             // 1) Base query
             IQueryable<Transaction> query = _context.Transactions
@@ -67,14 +68,16 @@ namespace MyFinance.Infrastructure.Repositories
                 query = query.Where(t => t.Date.Date <= endDate.Value.Date);
 
             if (!string.IsNullOrWhiteSpace(transactionType))
-                query = query.Where(t => t.TransactionType == TransactionType.FromName(transactionType));
-            //if (!string.IsNullOrWhiteSpace(transactionType))
-            //    query = query.Where(t => EF.Property<string>(t, "TransactionType") == transactionType);
+                query = query.Where(t => t.TransactionType == TransactionType.FromName(transactionType));            
 
             if (!string.IsNullOrWhiteSpace(description))
                 query = query.Where(t =>
                     t.Description != null &&
                     EF.Functions.Like(t.Description, $"%{description}%"));
+
+            if (userId != Guid.Empty)
+                query = query.Where(t => t.UserId == userId);
+
             // 3) Ordenamiento
             query = (sortField, sortDesc) switch
             {
@@ -95,20 +98,21 @@ namespace MyFinance.Infrastructure.Repositories
             // 4) Ejecuta en la base de datos
             return await query.ToListAsync();
         }
-        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end)
+        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end, Guid userId)
         {
             return await _context.Transactions
                 .Where(t =>
                     t.Date.Date >= start.Date &&
-                    t.Date.Date <= end.Date)
+                    t.Date.Date <= end.Date &&
+                    t.UserId == userId)
                 .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period)
+        public async Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period, Guid userId)
         {
             return await _context.Transactions
-                .Where(t => t.Date.Year == period.Year && t.Date.Month == period.Month)
+                .Where(t => t.Date.Year == period.Year && t.Date.Month == period.Month && t.UserId == userId)
                 .AsNoTracking()
                 .ToListAsync();
         }

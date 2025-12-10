@@ -4,6 +4,6 @@ namespace MyFinance.Application.UseCases
 {
     public interface IFinancialIndicatorUseCase
     {
-        Task<FinancialSummaryDto> CalculateIndicators(DateTime period);
+        Task<FinancialSummaryDto> CalculateIndicators(DateTime period, Guid userId);
     }
 }
