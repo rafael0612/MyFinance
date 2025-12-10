@@ -1,7 +1,7 @@
 @page "/budgets/add"
+@inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
 @inject NavigationManager Nav
-@using MyFinance.Client.Models
 
 <h3>Nuevo Presupuesto</h3>
 
@@ -39,6 +39,15 @@
         Amount = 0, 
         AlertThreshold = 0.8m
     };
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+    }
 
     async Task HandleValidSubmit()
     {

@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MyFinance.Application.Services;
 using MyFinance.Application.UseCases;
 using MyFinance.Domain.Interfaces;
@@ -6,6 +8,7 @@ using MyFinance.Infrastructure.Data;
 using MyFinance.Infrastructure.Repositories;
 using MyFinance.Infrastructure.Services;
 using MyFinance.Shared.Config;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +46,7 @@ builder.Services.AddScoped<IBulkTransactionImportUseCase, BulkTransactionImportU
 builder.Services.AddScoped<IEmailTransactionImportUseCase, EmailTransactionImportUseCase>();
 builder.Services.AddScoped<IFinancialIndicatorUseCase, FinancialIndicatorUseCase>();
 builder.Services.AddScoped<IUserRegisterUseCase, UserRegisterService>();
-
+builder.Services.AddScoped<IUserLoginUseCase, UserLoginService>();
 
 // 5) Añadir controladores
 builder.Services.AddControllers();
@@ -55,6 +58,23 @@ builder.Services.AddSwaggerGen();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
+
+// 6) Configurar autenticación JWT
+var jwtConfig = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtConfig["Issuer"],
+            ValidAudience = jwtConfig["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig["Key"]!))
+        };
+    });
 
 var app = builder.Build();
 
@@ -78,6 +98,7 @@ app.UseRouting();
 // 7) Habilitamos CORS globalmente
 app.UseCors("AllowClientApp");
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 using (var scope = app.Services.CreateScope())

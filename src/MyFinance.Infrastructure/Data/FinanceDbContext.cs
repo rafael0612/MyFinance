@@ -63,6 +63,13 @@ namespace MyFinance.Infrastructure.Data
 
                 entity.Property(t => t.EsFijo)
                       .IsRequired();
+                entity.Property(t => t.UserId)
+                      .IsRequired();
+
+                entity.HasOne(t => t.User)
+                      .WithMany()
+                      .HasForeignKey(t => t.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Budget → table "Budgets"
@@ -120,6 +127,21 @@ namespace MyFinance.Infrastructure.Data
                       .IsRequired();
                 entity.HasIndex(u => u.Email)
                       .IsUnique(); // Para evitar correos duplicados
+                entity.Property(u => u.IsActive)
+                      .IsRequired();
+                entity.Property(u => u.NameUser)
+                      .HasMaxLength(100);           // nullable por defecto
+
+                entity.Property(u => u.LastName)
+                      .HasMaxLength(100);           // nullable por defecto
+
+                entity.Property(u => u.FullName)
+                      .HasMaxLength(200);           // nullable por defecto
+
+                entity.Property(u => u.CreatedAt)
+                      .HasColumnType("datetime2")
+                      .HasDefaultValueSql("DATEADD(HOUR, -5, SYSUTCDATETIME())") // o GETUTCDATE()
+                      .ValueGeneratedOnAdd();
             });
 
             base.OnModelCreating(modelBuilder);
@@ -131,4 +153,3 @@ namespace MyFinance.Infrastructure.Data
         }
     }
 }
-

@@ -1,0 +1,45 @@
+@startuml Sequence_Register_Expense
+
+title CU-03 - Registrar gasto
+
+actor Usuario as U
+
+participant "Página Nuevo Gasto\nBlazor" as BlazorExpense
+participant "TransactionService\n(frontend)" as FE_Trans
+participant "TransactionsController\nWebApi" as C_Trans
+participant "CreateExpenseHandler\n(Application)" as BE_CreateExpense
+participant "CategoryRepository" as Repo_Cat
+participant "PaymentMethodRepository" as Repo_Pay
+participant "TransactionRepository" as Repo_Trans
+
+U -> BlazorExpense : Ingresa monto, fecha,\ncategoría, medio,\nmarca opcional "transferencia interna"
+
+BlazorExpense -> FE_Trans : CreateExpenseAsync(dto)
+
+FE_Trans -> C_Trans : POST /api/v1/transactions/expense\nAuthorization: Bearer token\n{ Amount, Date, CategoryId, PaymentMethodId,\n  IsTransferInternal, Description }
+
+C_Trans -> C_Trans : Obtener UserId del JWT\n(Claim NameIdentifier)
+
+C_Trans -> BE_CreateExpense : Handle(command, userId)
+
+BE_CreateExpense -> Repo_Cat : GetByIdAsync(CategoryId, userId)
+Repo_Cat --> BE_CreateExpense : Category? (validación de pertenencia/activa)
+
+BE_CreateExpense -> Repo_Pay : GetByIdAsync(PaymentMethodId, userId)
+Repo_Pay --> BE_CreateExpense : PaymentMethod?
+
+BE_CreateExpense -> BE_CreateExpense : Construir Transaction\nTransactionType = Expense\nIsTransferInternal según DTO
+
+BE_CreateExpense -> Repo_Trans : AddAsync(transaction)
+Repo_Trans -> Repo_Trans : DbContext.SaveChangesAsync
+Repo_Trans --> BE_CreateExpense : OK
+
+BE_CreateExpense --> C_Trans : Resultado exitoso
+
+C_Trans --> FE_Trans : 201 Created / 200 OK
+
+FE_Trans --> BlazorExpense : Confirmación
+
+BlazorExpense -> U : Muestra mensaje "Gasto registrado"\ny opcionalmente limpia el formulario
+
+@enduml

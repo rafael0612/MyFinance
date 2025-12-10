@@ -29,6 +29,7 @@ namespace MyFinance.Application.Services
             {
                 var transactionType = tx.TransactionType == TransactionType.Income.ToString() ? TransactionType.Income : TransactionType.Expense;
                 var entity = new DomainEntity(
+                    tx.UserId,
                     tx.Date,
                     transactionType,
                     tx.Amount,

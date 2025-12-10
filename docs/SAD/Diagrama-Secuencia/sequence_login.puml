@@ -1,0 +1,38 @@
+@startuml Sequence_Login
+
+title CU-02 - Iniciar sesión (Login)
+
+actor Usuario as U
+
+participant "Página Login\nBlazor" as BlazorLogin
+participant "AuthService\n(frontend)" as FE_Auth
+participant "AuthController\nWebApi" as C_Auth
+participant "AuthService\n(backend)" as BE_Auth
+participant "UserRepository" as Repo_User
+participant "JwtTokenGenerator" as JwtGen
+
+U -> BlazorLogin : Ingresa email + password\ny hace clic en "Entrar"
+
+BlazorLogin -> FE_Auth : LoginAsync(email, password)
+
+FE_Auth -> C_Auth : POST /api/v1/auth/login\n{ email, password }
+
+C_Auth -> BE_Auth : LoginAsync(dto)
+
+BE_Auth -> Repo_User : GetByEmailAsync(email)
+Repo_User --> BE_Auth : User? (incluye PasswordHash)
+
+BE_Auth -> BE_Auth : Validar contraseña\nPasswordHasher.VerifyHashedPassword
+BE_Auth -> JwtGen : GenerateToken(user)
+JwtGen --> BE_Auth : token JWT
+
+BE_Auth --> C_Auth : AuthResponseDto\n(UserId, Email, FullName, Token)
+
+C_Auth --> FE_Auth : 200 OK\nAuthResponseDto
+
+FE_Auth -> FE_Auth : Guardar token\n(SetTokenAsync en AuthStateProvider)
+FE_Auth -> BlazorLogin : Resultado ok
+
+BlazorLogin -> U : Redirige a /dashboard\ncomo usuario autenticado
+
+@enduml

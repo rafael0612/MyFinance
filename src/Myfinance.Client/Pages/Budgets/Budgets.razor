@@ -1,7 +1,7 @@
 @page "/budgets"
+@inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
 @inject NavigationManager Nav
-@using MyFinance.Client.Models
 
 <h3>Presupuestos</h3>
 
@@ -50,9 +50,14 @@ else
 @code {
     List<BudgetDto>? budgets;
     private int id = 1;
-
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
         budgets = await Http.GetFromJsonAsync<List<BudgetDto>>("api/budget");
         id = 1;
     }

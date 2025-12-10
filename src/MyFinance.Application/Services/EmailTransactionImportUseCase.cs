@@ -20,10 +20,12 @@ namespace MyFinance.Application.Services
         {
             var emails = await _emailParserService.ParseNewTransactionsAsync();
             var emailsProcessed = new List<ParsedEmailTransactionDto>();
+            var userId = Guid.NewGuid(); // Reemplazar con el Id del usuario actual si es necesario
             foreach (var dto in emails)
             {
                 var transactionType = dto.Amount < 0 ? TransactionType.Expense : TransactionType.Income;
                 var entity = new DomainEntity(
+                    userId,
                     dto.Date,
                     transactionType,
                     dto.Amount,

@@ -1,4 +1,6 @@
 @page "/transactions/add"
+@inject AuthenticationStateProvider AuthProvider
+@inject AuthService AuthService
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -79,10 +81,11 @@
     TransactionDto model = new()
     {
         Id = Guid.Empty, 
+        UserId = Guid.Empty,
         Date = DateTime.Today, 
         TransactionType = "Income", 
         TipoIngreso = "Activo", // Valor predeterminado
-        OrigenIngreso = string.Empty, // Campo vacío por defecto
+        OrigenIngreso = "Es Gasto", // Campo vacío por defecto
         Amount = 0,
         Description = string.Empty,
         ExpenseCategory = string.Empty, // Campo vacío por defecto
@@ -91,8 +94,27 @@
         NivelNecesidad = "Esencial"
     };
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+    }
+
     async Task HandleValidSubmit()
     {
+        // Al crear una transacción, asigna el UserId del usuario autenticado
+        var userId = await AuthService.GetUserIdAsync(); // Implementa este método para extraer el claim del JWT
+        if (userId == null)
+        {
+            // Si no hay usuario, redirige al login
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+        model.UserId = userId.Value;
         await Http.PostAsJsonAsync("api/transactions", model);
         Nav.NavigateTo("/transactions");
     }

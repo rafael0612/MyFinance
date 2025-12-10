@@ -1,0 +1,40 @@
+@startuml Sequence_Monthly_Summary
+
+title CU-08 - Ver resumen mensual (Dashboard)
+
+actor Usuario as U
+
+participant "Página Dashboard\nBlazor" as BlazorDash
+participant "SummaryService\n(frontend)" as FE_Sum
+participant "SummaryController\nWebApi" as C_Sum
+participant "GetMonthlySummaryHandler\n(Application)" as BE_MonthlySummary
+participant "TransactionRepository" as Repo_Trans
+participant "CategoryRepository" as Repo_Cat
+
+U -> BlazorDash : Navega a /dashboard
+
+BlazorDash -> FE_Sum : GetMonthlySummaryAsync(from, to)
+
+FE_Sum -> C_Sum : GET /api/v1/summary/monthly?from=...&to=...\nAuthorization: Bearer token
+
+C_Sum -> C_Sum : Obtener UserId del JWT
+
+C_Sum -> BE_MonthlySummary : Handle(query, userId, from, to)
+
+BE_MonthlySummary -> Repo_Trans : GetByUserAndPeriod(userId, from, to)
+Repo_Trans --> BE_MonthlySummary : Lista de Transactions
+
+BE_MonthlySummary -> Repo_Cat : GetAllByUser(userId)
+Repo_Cat --> BE_MonthlySummary : Lista de Categories
+
+BE_MonthlySummary -> BE_MonthlySummary : - Separar ingresos / gastos\n  - Identificar ingresos por deuda\n  - Filtrar movimientos de ahorro\n  - Calcular totales:\n    TotalIncomes, TotalDebtEntries,\n    TotalExpenses, SavingsMovements,\n    Balance, SavingsAmount,\n    Essential/NonEssential, DebtExpenses\n  - Construir TopExpenseCategories
+
+BE_MonthlySummary --> C_Sum : MonthlySummaryDto
+
+C_Sum --> FE_Sum : 200 OK\nMonthlySummaryDto
+
+FE_Sum --> BlazorDash : Resumen
+
+BlazorDash -> U : Muestra KPIs, balances\n y top 5 categorías de gasto
+
+@enduml

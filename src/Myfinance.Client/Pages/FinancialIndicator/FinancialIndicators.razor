@@ -1,5 +1,7 @@
 @page "/financial-indicators"
+@inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
+@inject NavigationManager Nav
 
 <h3>Indicadores Financieros</h3>
 
@@ -58,7 +60,16 @@
     private int Year = DateTime.Now.Year;
     private int Month = DateTime.Now.Month;
     private FinancialIndicatorsDto? Indicators;
-
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+    }
     private async Task FetchIndicators()
     {
         try

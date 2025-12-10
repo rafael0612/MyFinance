@@ -1,6 +1,7 @@
 ﻿@page "/importar-transacciones"
 @using Myfinance.Client.Models
 
+@inject AuthenticationStateProvider AuthProvider
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -57,6 +58,16 @@
     private string? StatusMessage;
     private List<TransactionDto>? importedTransactions;
     private int id = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+    }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {

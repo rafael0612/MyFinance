@@ -1,10 +1,11 @@
 // API/Controllers/BulkImportController.cs
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyFinance.Application.UseCases;
 
 namespace MyFinance.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BulkImportController : ControllerBase
@@ -20,7 +21,7 @@ namespace MyFinance.API.Controllers
         public async Task<IActionResult> Upload(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                    return BadRequest("Archivo no válido");
+                return BadRequest("Archivo no válido");
 
             //var extension = Path.GetExtension(file.FileName);
             //using var stream = file.OpenReadStream();

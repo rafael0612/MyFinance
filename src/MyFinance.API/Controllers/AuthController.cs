@@ -9,9 +9,11 @@ namespace MyFinance.API.Controllers
     public class AuthController : Controller
     {
         private readonly IUserRegisterUseCase _userUseCase;
-        public AuthController(IUserRegisterUseCase userUseCase)
+        private readonly IUserLoginUseCase _loginUseCase;
+        public AuthController(IUserRegisterUseCase userUseCase, IUserLoginUseCase loginUseCase)
         {
             _userUseCase = userUseCase;
+            _loginUseCase = loginUseCase;
         }
 
         [HttpPost("register")]
@@ -21,6 +23,14 @@ namespace MyFinance.API.Controllers
             if (success)
                 return Ok(new { message });
             return BadRequest(new { message });
+        }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
+        {
+            var result = await _loginUseCase.LoginAsync(dto);
+            if (!string.IsNullOrEmpty(result.Token))
+                return Ok(result);
+            return BadRequest(new { message = result.Message });
         }
     }
 }
