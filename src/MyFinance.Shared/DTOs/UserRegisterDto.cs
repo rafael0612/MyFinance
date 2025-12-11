@@ -15,5 +15,8 @@ namespace MyFinance.Shared.DTOs
         [Required(ErrorMessage = "La confirmación de contraseña es obligatoria.")]
         [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
         public string ConfirmPassword { get; set; } = string.Empty;
+        public string? NameUser { get; set; }
+        public string? LastName { get; set; }
+        public int UserType { get; set; } = 0; // 0=Standard, 1=Admin
     }
 }
