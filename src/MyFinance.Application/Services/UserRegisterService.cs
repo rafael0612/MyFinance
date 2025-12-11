@@ -31,7 +31,10 @@ namespace MyFinance.Application.Services
             // Hash de la contraseña (usa un método seguro en producción)
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            var user = new User(dto.Email, passwordHash);
+            var userType = UserType.Standard; // Por defecto
+            // permitir admins, puedes agregar lógica 
+
+            var user = new User(dto.Email, passwordHash, userType);
             await _repo.AddAsync(user);
 
             return (true, "Registro exitoso.");

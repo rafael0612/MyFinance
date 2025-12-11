@@ -1,0 +1,36 @@
+﻿@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<MudPaper Elevation="2" Class="p-4 mt-4">
+    <MudText Typo="Typo.h4" Class="mb-2">Panel de Administración</MudText>
+    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+        Acceso exclusivo para administradores.
+    </MudText>
+    <MudDivider Class="my-2" />
+
+    <MudList T="string">
+        <MudListItem T="string" OnClick="@(() => Nav.NavigateTo("/admin/users"))">
+            <MudIcon Icon="mdi-account-multiple" Color="Color.Primary" />
+            <MudText Class="ms-2">Gestión de usuarios</MudText>
+        </MudListItem>
+        <MudListItem T="string" OnClick="@(() => Nav.NavigateTo("/admin/audit"))">
+            <MudIcon Icon="mdi-database-search" Color="Color.Info" />
+            <MudText Class="ms-2">Auditoría de transacciones</MudText>
+        </MudListItem>
+        <MudListItem T="string" OnClick="@(() => Nav.NavigateTo("/admin/settings"))">
+            <MudIcon Icon="mdi-cog" Color="Color.Secondary" />
+            <MudText Class="ms-2">Configuración avanzada</MudText>
+        </MudListItem>
+    </MudList>
+</MudPaper>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var userType = await AuthService.GetUserTypeAsync();
+        if (userType != "Admin")
+        {
+            Nav.NavigateTo("/", true); // Redirige si no es admin
+        }
+    }
+}

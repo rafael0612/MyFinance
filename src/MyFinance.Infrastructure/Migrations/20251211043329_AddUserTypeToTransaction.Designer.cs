@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyFinance.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using MyFinance.Infrastructure.Data;
 namespace MyFinance.Infrastructure.Migrations
 {
     [DbContext(typeof(FinanceDbContext))]
-    partial class FinanceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251211043329_AddUserTypeToTransaction")]
+    partial class AddUserTypeToTransaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,7 +45,7 @@ namespace MyFinance.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Budgets", (string)null);
+                    b.ToTable("Budgets");
                 });
 
             modelBuilder.Entity("MyFinance.Domain.Entities.InternalTransfer", b =>
@@ -65,7 +68,7 @@ namespace MyFinance.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InternalTransfers", (string)null);
+                    b.ToTable("InternalTransfers");
                 });
 
             modelBuilder.Entity("MyFinance.Domain.Entities.Savings", b =>
@@ -84,7 +87,7 @@ namespace MyFinance.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Savings", (string)null);
+                    b.ToTable("Savings");
                 });
 
             modelBuilder.Entity("MyFinance.Domain.Entities.Transaction", b =>
@@ -142,7 +145,7 @@ namespace MyFinance.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("MyFinance.Domain.Entities.User", b =>
@@ -189,7 +192,7 @@ namespace MyFinance.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("MyFinance.Domain.Entities.Transaction", b =>

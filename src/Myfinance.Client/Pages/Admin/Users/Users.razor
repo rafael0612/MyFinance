@@ -1,0 +1,231 @@
+﻿@page "/admin/users"
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<MudPaper Elevation="2" Class="p-4 mt-4">
+    <MudText Typo="Typo.h5" Class="mb-3">Gestión de Usuarios</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="mdi-account-plus" OnClick="ShowAddDialog">
+        Nuevo usuario
+    </MudButton>
+    <MudTable Items="users" Hover="true" Class="mt-4">
+        <HeaderContent>
+            <MudTh>Email</MudTh>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Activo</MudTh>
+            <MudTh>Tipo</MudTh>
+            <MudTh>Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Email</MudTd>
+            <MudTd>@context.FullName</MudTd>
+            <MudTd>
+                <MudSwitch T="bool"
+                           T="bool"
+                           Value="@context.IsActive"
+                           ValueChanged="@(async (bool newValue) => await OnSwitchChanged(context, newValue))"
+                           Color="Color.Primary" />
+
+            </MudTd>
+
+
+            <MudTd>@(context.UserType == 1 ? "Admin" : "Usuario")</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Text" Color="Color.Info" StartIcon="mdi-pencil"
+                           OnClick="() => EditUser(context)">Editar</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="mdi-delete"
+                           OnClick="() => DeleteUser(context.Id)">Eliminar</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+<MudDialog @bind-Visible="addDialogOpen">
+    <DialogContent>
+        <MudText Typo="Typo.h6">Nuevo Usuario</MudText>
+        <EditForm Model="newUser" OnValidSubmit="AddUser">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <MudTextField @bind-Value="newUser.Email" Label="Email" Required="true" />
+            <MudTextField @bind-Value="newUser.NameUser" Label="Nombre" />
+            <MudTextField @bind-Value="newUser.LastName" Label="Apellido" />
+            <MudTextField @bind-Value="newUser.Password" Label="Contraseña" InputType="InputType.Password" Required="true" />
+            <MudTextField @bind-Value="newUser.ConfirmPassword" Label="Confirmar Contraseña" InputType="InputType.Password" Required="true" />
+            <MudSelect T="int" @bind-Value="newUser.UserType" Label="Tipo de usuario">
+                <MudSelectItem Value="0">Usuario</MudSelectItem>
+                <MudSelectItem Value="1">Admin</MudSelectItem>
+            </MudSelect>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-3">Crear</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Text"
+                       OnClick="() => addDialogOpen = false"
+                       Class="mt-3">
+                Cancelar
+            </MudButton>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(addUserMessage))
+        {
+            <MudAlert Severity="@(addUserSuccess? Severity.Success: Severity.Error)" Class="mt-2">
+                @addUserMessage
+            </MudAlert>
+        }
+    </DialogContent>
+</MudDialog>
+
+<MudDialog @bind-Visible="editDialogOpen">
+    <DialogContent>
+        <MudText Typo="Typo.h6">Editar Usuario</MudText>
+
+        @if (editUser is not null)
+        {
+            <EditForm Model="editUser" OnValidSubmit="UpdateUser">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <MudTextField @bind-Value="editUser.NameUser" Label="Nombre" />
+                <MudTextField @bind-Value="editUser.LastName" Label="Apellido" />
+                <MudSelect T="int" @bind-Value="editUser.UserType" Label="Tipo de usuario">
+                    <MudSelectItem Value="0">Usuario</MudSelectItem>
+                    <MudSelectItem Value="1">Admin</MudSelectItem>
+                </MudSelect>
+                <MudSwitch T="bool" @bind-Value="editUser.IsActive"
+                           Color="Color.Primary"
+                           Label="Activo" />
+                <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-3">
+                    Guardar
+                </MudButton>
+                <MudButton Color="Color.Secondary" Variant="Variant.Text"
+                           OnClick="() => editDialogOpen = false"
+                           Class="mt-3">
+                    Cancelar
+                </MudButton>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(editUserMessage))
+            {
+                <MudAlert Severity="@(editUserSuccess? Severity.Success: Severity.Error)" Class="mt-2">
+                    @editUserMessage
+                </MudAlert>
+            }
+        }
+    </DialogContent>
+</MudDialog>
+@* <MudText Typo="Typo.caption">
+    addDialogOpen: @addDialogOpen, editDialogOpen: @editDialogOpen
+</MudText> *@
+
+
+@code {
+    List<UserDto> users = new();
+    bool addDialogOpen = false;
+    UserRegisterDto newUser = new();
+    string addUserMessage = string.Empty;
+    bool addUserSuccess = false;
+    UserDto? editUser = null;
+    bool editDialogOpen = false;
+    string editUserMessage = string.Empty;
+    bool editUserSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    async Task LoadUsers()
+    {
+        users = await Http.GetFromJsonAsync<List<UserDto>>("api/users") ?? new();
+    }
+
+    void ShowAddDialog()
+    {
+        newUser = new UserRegisterDto();
+        addUserMessage = string.Empty;
+        addUserSuccess = false;
+        addDialogOpen = true;
+    }
+
+    async Task AddUser()
+    {
+        addUserMessage = string.Empty;
+        addUserSuccess = false;
+        var resp = await Http.PostAsJsonAsync("api/users/create", newUser);
+        var result = await resp.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        if (resp.IsSuccessStatusCode)
+        {
+            addUserMessage = result?["message"] ?? "Usuario creado correctamente.";
+            addUserSuccess = true;
+            addDialogOpen = false;
+            await LoadUsers();
+        }
+        else
+        {
+            addUserMessage = result?["message"] ?? "Error al crear usuario.";
+        }
+    }
+
+    private async Task OnSwitchChanged(UserDto user, bool newValue)
+    {
+
+        user.IsActive = newValue;
+
+        var url = newValue 
+            ? $"api/users/{user.Id}/activate"
+            : $"api/users/{user.Id}/deactivate";
+
+        var resp = await Http.PutAsync(url, null);
+        if (resp.IsSuccessStatusCode)
+        {
+            await LoadUsers();
+        }
+        if (!resp.IsSuccessStatusCode)
+        {
+            // si falló en el servidor, revertimos el valor en el cliente
+            user.IsActive = !newValue;
+        }
+    }
+
+    async Task DeleteUser(Guid id)
+    {
+        var resp = await Http.DeleteAsync($"api/users/{id}");
+        if (resp.IsSuccessStatusCode)
+        {
+            await LoadUsers();
+        }
+    }
+    void EditUser(UserDto user)
+    {
+        // Clona el usuario para no modificar la lista directamente
+        editUser = new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = user.FullName,
+            NameUser = user.NameUser,
+            LastName = user.LastName,
+            IsActive = user.IsActive,
+            UserType = user.UserType,
+            CreatedAt = user.CreatedAt
+        };
+        editUserMessage = string.Empty;
+        editUserSuccess = false;
+        editDialogOpen = true;
+    }
+
+    async Task UpdateUser()
+    {
+        if (editUser is null) return;
+        editUserMessage = string.Empty;
+        editUserSuccess = false;
+        var resp = await Http.PutAsJsonAsync($"api/users/{editUser.Id}", editUser);
+        var result = await resp.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        if (resp.IsSuccessStatusCode)
+        {
+            editUserMessage = result?["message"] ?? "Usuario actualizado correctamente.";
+            editUserSuccess = true;
+            editDialogOpen = false;
+            await LoadUsers();
+        }
+        else
+        {
+            editUserMessage = result?["message"] ?? "Error al actualizar usuario.";
+        }
+    }
+}

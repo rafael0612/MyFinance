@@ -26,8 +26,13 @@ namespace MyFinance.API.Controllers
             [FromQuery] bool sortDesc = false)
         {
             var userIdClaim = User.FindFirst("userId")?.Value;
+            var userTypeClaim = User.FindFirst("userType")?.Value;
             Guid.TryParse(userIdClaim, out var userId);
-            var list = await _transactionUseCase.GetTransactionsAsync(startDate, endDate, transactionType, description, sortField, sortDesc, userId);
+            bool isAdmin = userTypeClaim == "Admin";
+
+            var list = isAdmin 
+                ? await _transactionUseCase.GetAllTransactionsAsync() // Ver todo
+                : await _transactionUseCase.GetTransactionsAsync(startDate, endDate, transactionType, description, sortField, sortDesc, userId); // Solo sus datos
             return Ok(list);
         }
         // GET api/transactions/{id}
@@ -86,7 +91,6 @@ namespace MyFinance.API.Controllers
         [HttpGet("summary/{year:int}/{month:int}")]
         public async Task<IActionResult> GetSummary(int year, int month)
         {
-            //Console.WriteLine($"Obteniendo resumen para {year}-{month}");
             var userIdClaim = User.FindFirst("userId")?.Value;
             Guid.TryParse(userIdClaim, out var userId);
             var summary = await _transactionUseCase.GetMonthlySummaryAsync(year, month, userId);

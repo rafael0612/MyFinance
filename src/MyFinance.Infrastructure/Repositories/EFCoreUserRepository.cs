@@ -20,5 +20,23 @@ namespace MyFinance.Infrastructure.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
             => await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        public async Task<User?> GetByIdAsync(Guid id)
+        => await _context.Users.FindAsync(id);
+
+        public async Task<IEnumerable<User>> GetAllAsync()
+            => await _context.Users.ToListAsync();
+        public async Task<bool> UpdateAsync(User user)
+        {
+            _context.Users.Update(user);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return false;
+            _context.Users.Remove(user);
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

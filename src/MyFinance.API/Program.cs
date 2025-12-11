@@ -47,6 +47,7 @@ builder.Services.AddScoped<IEmailTransactionImportUseCase, EmailTransactionImpor
 builder.Services.AddScoped<IFinancialIndicatorUseCase, FinancialIndicatorUseCase>();
 builder.Services.AddScoped<IUserRegisterUseCase, UserRegisterService>();
 builder.Services.AddScoped<IUserLoginUseCase, UserLoginService>();
+builder.Services.AddScoped<IUserManagementUseCase, UserManagementService>();
 
 // 5) Añadir controladores
 builder.Services.AddControllers();

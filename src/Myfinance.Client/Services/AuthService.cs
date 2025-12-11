@@ -57,5 +57,17 @@ namespace MyFinance.Client.Services
             var nameClaim = jwt.Claims.FirstOrDefault(c => c.Type == "fullName");
             return nameClaim?.Value;
         }
+        public async Task<string?> GetUserTypeAsync()
+        {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            var userTypeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "userType");
+            return userTypeClaim?.Value;
+        }
     }
 }

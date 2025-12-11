@@ -97,17 +97,10 @@ namespace MyFinance.Application.Services
         public async Task<MonthlySummaryDto> GetMonthlySummaryAsync(int year, int month, Guid userId)
         {
             var items = await _repo.GetByMonthAsync(year, month, userId);
-            //foreach (var item in items)
-            //{
-            //    Console.WriteLine($"Transaction: {item.Id}, Date: {item.Date}, Category: {item.TransactionType}, Amount: {item.Amount}");
-            //}
 
             var income = items.Where(t => t.TransactionType == TransactionType.Income).Sum(t => t.Amount);
 
             var expense = items.Where(t => t.TransactionType == TransactionType.Expense).Sum(t => t.Amount);
-
-            Console.WriteLine($"Income: {income}, Expense: {expense}");
-            Console.WriteLine($"Year: {year}, Month: {month}");
 
             return new MonthlySummaryDto(
                year,

@@ -32,7 +32,8 @@ namespace MyFinance.Application.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim("userId", user.Id.ToString()),
-                new Claim("fullName", user.FullName!)
+                new Claim("userType", user.UserType.ToString()), // NUEVO
+                new Claim("fullName", user.FullName ?? "")
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

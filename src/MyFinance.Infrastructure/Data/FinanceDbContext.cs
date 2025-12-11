@@ -138,6 +138,10 @@ namespace MyFinance.Infrastructure.Data
                 entity.Property(u => u.FullName)
                       .HasMaxLength(200);           // nullable por defecto
 
+                entity.Property(u => u.UserType)
+                      .HasConversion<int>() // Guardar el enum como int
+                      .IsRequired();
+
                 entity.Property(u => u.CreatedAt)
                       .HasColumnType("datetime2")
                       .HasDefaultValueSql("DATEADD(HOUR, -5, SYSUTCDATETIME())") // o GETUTCDATE()

@@ -6,5 +6,9 @@ namespace MyFinance.Domain.Interfaces
     {
         Task<User?> GetByEmailAsync(string email);
         Task AddAsync(User user);
+        Task<IEnumerable<User>> GetAllAsync();
+        Task<User?> GetByIdAsync(Guid id);
+        Task<bool> UpdateAsync(User user);
+        Task<bool> DeleteAsync(Guid id);
     }
 }
