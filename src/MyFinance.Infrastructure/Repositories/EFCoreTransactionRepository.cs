@@ -116,5 +116,50 @@ namespace MyFinance.Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+        public async Task<(IEnumerable<Transaction> Items, int TotalCount)> GetFilteredPagedAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? transactionType,
+            string? description,
+            string sortField,
+            bool sortDesc,
+            Guid userId,
+            int page,
+            int pageSize)
+        {
+            //IQueryable<Transaction> query = _context.Transactions.AsNoTracking();
+            var query = _context.Transactions.AsNoTracking().AsQueryable();
+
+            // Filtros (igual que antes)
+            if (startDate.HasValue)
+                query = query.Where(t => t.Date.Date >= startDate.Value.Date);
+            if (endDate.HasValue)
+                query = query.Where(t => t.Date.Date <= endDate.Value.Date);
+            if (!string.IsNullOrWhiteSpace(transactionType))
+                query = query.Where(t => t.TransactionType == TransactionType.FromName(transactionType));
+            if (!string.IsNullOrWhiteSpace(description))
+                query = query.Where(t => t.Description != null && EF.Functions.Like(t.Description, $"%{description}%"));
+            if (userId != Guid.Empty)
+                query = query.Where(t => t.UserId == userId);
+
+            // Ordenamiento (igual que antes)
+            query = (sortField, sortDesc) switch
+            {
+                ("Date", false) => query.OrderBy(t => t.Date),
+                ("Date", true) => query.OrderByDescending(t => t.Date),
+                ("TransactionType", false) => query.OrderBy(t => t.TransactionType),
+                ("TransactionType", true) => query.OrderByDescending(t => t.TransactionType),
+                ("Description", false) => query.OrderBy(t => t.Description),
+                ("Description", true) => query.OrderByDescending(t => t.Description),
+                ("Amount", false) => query.OrderBy(t => t.Amount),
+                ("Amount", true) => query.OrderByDescending(t => t.Amount),
+                _ => sortDesc ? query.OrderByDescending(t => t.Date) : query.OrderBy(t => t.Date)
+            };
+
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

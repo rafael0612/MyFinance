@@ -34,7 +34,8 @@
         <InputText @bind-Value="filterDescription" class="form-control" placeholder="Texto libre..." />
     </div>
     <div class="col-md-1 d-flex align-items-end">
-        <button class="btn btn-primary w-100" @onclick="LoadTransactionsAsync">Filtrar</button>
+        @* <button class="btn btn-primary w-100" @onclick="LoadTransactionsAsync">Filtrar</button> *@
+        <button class="btn btn-primary w-100" @onclick="ApplyFiltersAsync" type="button">Filtrar</button>
     </div>
 </div>
 
@@ -42,7 +43,8 @@
 <div class="row align-items-end mb-4">
     <div class="col-md-3">
         <label class="form-label">Ordenar por</label>
-        <InputSelect @bind-Value="sortField" class="form-control">
+        @* <InputSelect @bind-Value="sortField" class="form-control"> *@
+        <InputSelect @bind-Value="sortField" class="form-control" @onchange="OnSortChanged">
             <option value="Date">Fecha</option>
             <option value="TransactionType">Tipo de Trasnsacción</option>
             <option value="Description">Descripción</option>
@@ -51,7 +53,8 @@
     </div>
     <div class="col-md-2">
         <div class="form-check mt-4">
-            <InputCheckbox @bind-Value="sortDesc" class="form-check-input" id="sortDesc" />
+            @* <InputCheckbox @bind-Value="sortDesc" class="form-check-input" id="sortDesc" /> *@
+            <InputCheckbox @bind-Value="sortDesc" class="form-check-input" id="sortDesc" @onchange="OnSortChanged" />
             <label class="form-check-label" for="sortDesc">Descendente</label>
         </div>
     </div>
@@ -79,8 +82,11 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var t in transactions)
+            @* @foreach (var t in transactions) *@
+            @for (var index = 0; index < transactions.Count; index++)
             {
+                var t = transactions[index];
+                var rowNumber = (currentPage - 1) * pageSize + index + 1;
                 if(t.TransactionType == "Income")
                 {
                     amountClass = "text-success fw-bold";
@@ -94,7 +100,8 @@ else
                     amountClass = string.Empty;
                 }
                 <tr>
-                    <td>@id</td>
+                    @* <td>@id</td> *@
+                    <td>@rowNumber</td>
                     <td>@t.Date.ToShortDateString()</td>                    
                     <td>
                         @(t.TransactionType == "Income" ? "Ingreso" : t.TransactionType == "Expense" ? "Gasto" : t.TransactionType)
@@ -108,11 +115,35 @@ else
                         </button>
                     </td>
                 </tr>
-                id++;
+                @* id++; *@
             }
         </tbody>
     </table>
 }
+<!-- PAGINACIÓN -->
+@if (transactions!.Any())
+{
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Anterior</button>
+            </li>
+
+            @for (var p = 1; p <= TotalPages; p++)
+            {
+                var pageNumber = p;
+                <li class="page-item @(currentPage == pageNumber ? "active" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(pageNumber)">@pageNumber</button>
+                </li>
+            }
+
+            <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Siguiente</button>
+            </li>
+        </ul>
+    </nav>
+}
+<!-- FIN PAGINACIÓN -->
 @code {
     List<TransactionDto> transactions = new();
     // filtros
@@ -123,6 +154,13 @@ else
     // ordenamiento
     private string sortField = "Date";
     private bool sortDesc;
+
+    // paginación
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalCount;
+    private int TotalPages => (int)Math.Ceiling((double)totalCount / pageSize);
+
     private int id = 1;
     private string amountClass = string.Empty;
 
@@ -144,28 +182,49 @@ else
     {
         try
         {
-            // Construye parámetros de consulta
-            var query = new Dictionary<string, string>();
-            if (filterStart.HasValue)
-                query["startDate"] = filterStart.Value.ToString("yyyy-MM-dd");
-            if (filterEnd.HasValue)
-                query["endDate"] = filterEnd.Value.ToString("yyyy-MM-dd");
-            if (!string.IsNullOrWhiteSpace(filterTransactionType))
-                query["transactionType"] = filterTransactionType;
-            if (!string.IsNullOrWhiteSpace(filterDescription))
-                query["description"] = filterDescription;
-            query["sortField"] = sortField;
-            query["sortDesc"] = sortDesc.ToString();
+            var url = QueryHelpers.AddQueryString("api/transactions", new Dictionary<string, string?>
+            {
+                ["startDate"] = filterStart?.ToString("yyyy-MM-dd") ?? "",
+                ["endDate"] = filterEnd?.ToString("yyyy-MM-dd") ?? "",
+                ["transactionType"] = filterTransactionType,
+                ["description"] = filterDescription,
+                ["sortField"] = sortField,
+                ["sortDesc"] = sortDesc.ToString(),
+                ["page"] = currentPage.ToString(),
+                ["pageSize"] = pageSize.ToString()
+            });
+            var result = await Http.GetFromJsonAsync<PagedResultDto<TransactionDto>>(url);
 
-            var url = QueryHelpers.AddQueryString("api/transactions", query!);
-            transactions = await Http.GetFromJsonAsync<List<TransactionDto>>(url) ?? new List<TransactionDto>();
-            id = 1;
+            transactions = result?.Items?.ToList() ?? new List<TransactionDto>();
+            totalCount = result?.TotalCount ?? 0;
+
+            id = (currentPage - 1) * pageSize + 1; //si quieres numeración global;
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error cargando transacciones: {ex.Message}");
             transactions = new List<TransactionDto>();
+            totalCount = 0;
         }
+    }
+    private async Task ApplyFiltersAsync()
+    {
+        // Siempre que cambio filtros, regreso a la primera página
+        currentPage = 1;
+        await LoadTransactionsAsync();
+    }
+    private async Task OnSortChanged(ChangeEventArgs _)
+    {
+        currentPage = 1;
+        await LoadTransactionsAsync();
+    }
+    private async Task ChangePage(int page)
+    {
+        if (page < 1) page = 1;
+        if (page > TotalPages) page = TotalPages == 0 ? 1 : TotalPages;
+
+        currentPage = page;
+        await LoadTransactionsAsync();
     }
     async Task Delete(Guid id)
     {

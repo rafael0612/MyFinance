@@ -21,5 +21,16 @@ namespace MyFinance.Application.UseCases
             Guid userId
         );
         Task<IEnumerable<DailyTransactionDto>> GetDailyExpensesAsync(DateTime start, DateTime end, Guid userId);
+        Task<PagedResultDto<TransactionDto>> GetTransactionsPagedAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? transactionType,
+            string? description,
+            string sortField,
+            bool sortDesc,
+            Guid userId,
+            int page,
+            int pageSize
+        );
     }
 }

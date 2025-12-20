@@ -41,5 +41,16 @@ namespace MyFinance.Domain.Interfaces
         /// <remarks>
         Task<IEnumerable<Transaction>> GetByDateRangeAsync(DateTime start, DateTime end, Guid userId);
         Task<IEnumerable<Transaction>> GetTransactionsByPeriod(DateTime period, Guid userId);
+        Task<(IEnumerable<Transaction> Items, int TotalCount)> GetFilteredPagedAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? transactionType,
+            string? description,
+            string sortField,
+            bool sortDesc,
+            Guid userId,
+            int page,
+            int pageSize
+        );
     }
 }
