@@ -180,6 +180,39 @@ namespace MyFinance.Application.Services
             }
 
             return list;
+        }    
+        public async Task<PagedResultDto<TransactionDto>> GetTransactionsPagedAsync(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? transactionType,
+            string? description,
+            string sortField,
+            bool sortDesc,
+            Guid userId,
+            int page,
+            int pageSize)
+        {
+            var (items, totalCount) = await _repo.GetFilteredPagedAsync(
+                startDate, endDate, transactionType, description, sortField, sortDesc, userId, page, pageSize);
+
+            return new PagedResultDto<TransactionDto>
+            {
+                Items = items.Select(t => new TransactionDto(
+                    t.Id,
+                    t.UserId,
+                    t.Date,
+                    t.TransactionType!.ToString(),
+                    t.Amount,
+                    t.TipoIngreso,
+                    t.OrigenIngreso,
+                    t.Description,
+                    t.ExpenseCategory ?? string.Empty,
+                    t.EsFijo,
+                    t.NaturalezaGasto,
+                    t.NivelNecesidad
+                )).ToList(),
+                TotalCount = totalCount
+            };
         }
     }
 }

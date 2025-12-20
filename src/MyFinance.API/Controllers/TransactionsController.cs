@@ -23,17 +23,32 @@ namespace MyFinance.API.Controllers
             [FromQuery] string? transactionType,
             [FromQuery] string? description,
             [FromQuery] string sortField = "Date",
-            [FromQuery] bool sortDesc = false)
+            [FromQuery] bool sortDesc = false,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var userIdClaim = User.FindFirst("userId")?.Value;
             var userTypeClaim = User.FindFirst("userType")?.Value;
             Guid.TryParse(userIdClaim, out var userId);
             bool isAdmin = userTypeClaim == "Admin";
 
-            var list = isAdmin 
-                ? await _transactionUseCase.GetAllTransactionsAsync() // Ver todo
-                : await _transactionUseCase.GetTransactionsAsync(startDate, endDate, transactionType, description, sortField, sortDesc, userId); // Solo sus datos
-            return Ok(list);
+            var result = await _transactionUseCase.GetTransactionsPagedAsync(
+                startDate,
+                endDate,
+                transactionType,
+                description,
+                sortField,
+                sortDesc,
+                isAdmin ? Guid.Empty : userId,
+                page,
+                pageSize);
+
+            return Ok(result); // devuelve PagedResultDto<TransactionDto>
+
+            //var list = isAdmin 
+            //    ? await _transactionUseCase.GetAllTransactionsAsync() // Ver todo
+            //    : await _transactionUseCase.GetTransactionsAsync(startDate, endDate, transactionType, description, sortField, sortDesc, userId); // Solo sus datos
+            //return Ok(list);
         }
         // GET api/transactions/{id}
         [HttpGet("{id:guid}")]
