@@ -7,15 +7,21 @@ namespace MyFinance.Domain.Entities
         public int Month { get; private set; }
         public decimal Amount { get; private set; }
         public decimal AlertThreshold { get; private set; }
+
+        // NUEVO: Clave foránea y navegación
+        public Guid UserId { get; private set; }
+        public User? User { get; private set; }
+
         private Budget() { }
         // Constructor “nuevo”
-        public Budget(int year, int month, decimal amount, decimal alertThreshold = 0.8m)
+        public Budget(Guid userId, int year, int month, decimal amount, decimal alertThreshold = 0.8m)
         {            
             ValidateMonth(month);
             ValidateAmount(amount);
             ValidateThreshold(alertThreshold);
 
             Id = Guid.NewGuid();
+            UserId = userId;
             Year = year;
             Month = month;
             Amount = amount;
@@ -23,7 +29,7 @@ namespace MyFinance.Domain.Entities
 
         }
          // Constructor para rehidratar (por ejemplo en tests o al recrear con id)
-        public Budget(Guid id, int year, int month, decimal amount, decimal alertThreshold = 0.8m)
+        public Budget(Guid id, Guid userId, int year, int month, decimal amount, decimal alertThreshold = 0.8m)
         {
             if (id == Guid.Empty) throw new ArgumentException("El Id no puede estar vacío.", nameof(id));
             ValidateMonth(month);
@@ -31,6 +37,7 @@ namespace MyFinance.Domain.Entities
             ValidateThreshold(alertThreshold);
 
             Id = id;
+            UserId = userId;
             Year = year;
             Month = month;
             Amount = amount;

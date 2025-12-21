@@ -86,6 +86,10 @@ namespace MyFinance.Infrastructure.Data
                 entity.Property(b => b.AlertThreshold)
                       .HasColumnType("decimal(5,4)") // p.ej. 0.8000
                       .IsRequired();
+                entity.HasOne(t => t.User)
+                      .WithMany()
+                      .HasForeignKey(t => t.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Savings → table "Savings"

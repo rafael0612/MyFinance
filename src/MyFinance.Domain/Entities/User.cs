@@ -10,7 +10,7 @@
         public string? LastName { get; private set; } = string.Empty; // NUEVO
         public string? FullName { get; private set; } = string.Empty; // NUEVO
         public UserType UserType { get; private set; } // NUEVO
-        public DateTime CreatedAt { get; private set; }              // NUEVO
+        public DateTime CreatedAt { get; private set; } // NUEVO
 
         private User() { }
 

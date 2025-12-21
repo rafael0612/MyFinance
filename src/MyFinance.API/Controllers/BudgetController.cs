@@ -19,7 +19,12 @@ namespace MyFinance.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var list = await _budgetUseCase.GetAllBudgetsAsync();
+            var userIdClaim = User.FindFirst("userId")?.Value;
+            var userTypeClaim = User.FindFirst("userType")?.Value;
+            Guid.TryParse(userIdClaim, out var userId);
+            bool isAdmin = userTypeClaim == "Admin";
+
+            var list = await _budgetUseCase.GetAllBudgetsAsync(isAdmin ? Guid.Empty : userId);
             return Ok(list);
         }
         // GET api/budget/{id}

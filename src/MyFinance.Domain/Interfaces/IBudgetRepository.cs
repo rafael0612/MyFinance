@@ -19,6 +19,6 @@ namespace MyFinance.Domain.Interfaces
         /// <sumary>
         /// Recupera todos los presupuestos resgistrados.
         /// </sumary>
-        Task<IEnumerable<Budget>> GetAllAsync();
+        Task<IEnumerable<Budget>> GetAllAsync(Guid userId);
     }
 }
