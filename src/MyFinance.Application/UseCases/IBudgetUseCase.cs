@@ -4,7 +4,7 @@ namespace MyFinance.Application.UseCases
 {
     public interface IBudgetUseCase
     {
-        Task<IEnumerable<BudgetDto>> GetAllBudgetsAsync();
+        Task<IEnumerable<BudgetDto>> GetAllBudgetsAsync(Guid userId);
         Task<BudgetDto?> GetBudgetByIdAsync(Guid id);
         Task<BudgetDto?> GetBudgetByMonthAsync(int year, int month);        
         Task AddBudgetAsync(BudgetDto dto);

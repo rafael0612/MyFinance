@@ -40,11 +40,19 @@ namespace MyFinance.Infrastructure.Repositories
             => await _context.Budgets
                              .AsNoTracking()
                              .FirstOrDefaultAsync(b => b.Id == budgetId);
-        public async Task<IEnumerable<Budget>> GetAllAsync()
-            => await _context.Budgets
-                             .AsNoTracking()
-                             .OrderBy(b => b.Year)
-                             .ThenBy(b => b.Month)
-                             .ToListAsync();
+        public async Task<IEnumerable<Budget>> GetAllAsync(Guid userId)
+        {
+            var query = _context.Budgets.AsNoTracking().AsQueryable();
+            if (userId != Guid.Empty)
+                query = query.Where(t => t.UserId == userId);
+            query = query.OrderBy(b => b.Year).ThenBy(b => b.Month);
+            return await query.ToListAsync();
+            //await _context.Budgets
+            //                   .AsNoTracking()
+            //                   .Where(t => t.UserId == userId)
+            //                   .OrderBy(b => b.Year)
+            //                   .ThenBy(b => b.Month)
+            //                   .ToListAsync();
+        }
     }
 }

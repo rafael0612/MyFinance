@@ -25,6 +25,7 @@ namespace MyFinance.Client.Models
     public class BudgetDto
     {
         public Guid Id { get; set; }
+        public Guid UserId { get; set; } // NUEVO
         public int Year { get; set; }
         public int Month { get; set; }
         public decimal Amount { get; set; }

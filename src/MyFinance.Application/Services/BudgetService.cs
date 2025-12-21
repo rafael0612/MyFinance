@@ -12,11 +12,12 @@ namespace MyFinance.Application.Services
         {
             _repo = repo;
         }
-        public async Task<IEnumerable<BudgetDto>> GetAllBudgetsAsync()
+        public async Task<IEnumerable<BudgetDto>> GetAllBudgetsAsync(Guid userId)
         {
-            var list = await _repo.GetAllAsync();
+            var list = await _repo.GetAllAsync(userId);
             return list.Select(b => new BudgetDto(
                 b.Id,
+                b.UserId,
                 b.Year,
                 b.Month,
                 b.Amount,
@@ -28,6 +29,7 @@ namespace MyFinance.Application.Services
             var dto = await _repo.GetByIdAsync(id);
             return new BudgetDto(
                dto!.Id,
+               dto.UserId, // NUEVO
                dto.Year,
                dto.Month,
                dto.Amount,
@@ -41,6 +43,7 @@ namespace MyFinance.Application.Services
 
             return new BudgetDto(
                 b.Id,
+                b.UserId,
                 b.Year,
                 b.Month,
                 b.Amount,
@@ -50,6 +53,7 @@ namespace MyFinance.Application.Services
         public async Task AddBudgetAsync(BudgetDto dto)
         {
             var entity = new DomainEntity(
+                dto.UserId,
                 dto.Year,
                 dto.Month,
                 dto.Amount,

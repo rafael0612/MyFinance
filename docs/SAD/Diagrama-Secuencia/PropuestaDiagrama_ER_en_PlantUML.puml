@@ -1,0 +1,103 @@
+@startuml
+!theme blueprint
+
+' ========================
+' ENTIDADES PRINCIPALES
+' ========================
+entity "Users" as Users {
+  * Id : GUID
+  --
+  Email : string
+  PasswordHash : string
+  FullName : string
+  CreatedAt : datetime
+}
+
+entity "Accounts" as Accounts {
+  * Id : GUID
+  --
+  UserId : GUID
+  Name : string
+  AccountType : string  ' (Cash, Bank, Card, Wallet...)
+  Currency : string     ' ("PEN","USD", etc.)
+  IsActive : bool
+}
+
+entity "Categories" as Categories {
+  * Id : GUID
+  --
+  UserId : GUID
+  Name : string
+  Type : string    ' Income / Expense
+  ColorHex : string
+}
+
+entity "Transactions" as Transactions {
+  * Id : GUID
+  --
+  UserId : GUID
+  AccountId : GUID
+  CategoryId : GUID?
+  Date : datetime
+  Amount : decimal
+  TransactionType : string  ' Income / Expense
+  Description : string
+  PaymentMethod : string    ' (cash, debit, credit, etc.)
+  InternalTransferId : GUID?
+}
+
+entity "Budgets" as Budgets {
+  * Id : GUID
+  --
+  UserId : GUID
+  CategoryId : GUID
+  Year : int
+  Month : int?   ' null si es presupuesto anual
+  LimitAmount : decimal
+}
+
+entity "SavingGoals" as SavingGoals {
+  * Id : GUID
+  --
+  UserId : GUID
+  AccountId : GUID?
+  Name : string
+  TargetAmount : decimal
+  CurrentAmount : decimal
+  StartDate : datetime
+  TargetDate : datetime?
+  Status : string  ' Planned / InProgress / Completed
+}
+
+entity "InternalTransfers" as InternalTransfers {
+  * Id : GUID
+  --
+  UserId : GUID
+  FromAccountId : GUID
+  ToAccountId   : GUID
+  Date : datetime
+  Amount : decimal
+  Description : string
+}
+
+' ========================
+' RELACIONES
+' ========================
+
+Users ||--o{ Accounts          : "1 a muchos"
+Users ||--o{ Categories        : "1 a muchos"
+Users ||--o{ Transactions      : "1 a muchos"
+Users ||--o{ Budgets           : "1 a muchos"
+Users ||--o{ SavingGoals       : "1 a muchos"
+Users ||--o{ InternalTransfers : "1 a muchos"
+
+Accounts ||--o{ Transactions   : "1 a muchos"
+Accounts ||--o{ SavingGoals    : "1 a muchos (opcional)"
+
+Categories ||--o{ Transactions : "1 a muchos"
+Categories ||--o{ Budgets      : "1 a muchos"
+
+InternalTransfers ||--o{ Transactions : "1 a muchos\n(dos movimientos por transferencia)"
+
+Accounts ||--|| InternalTransfers : "FromAccountId / ToAccountId"
+@enduml
